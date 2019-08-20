@@ -12,7 +12,7 @@ entity ram is
     ck, wr : in  bit;
     addr   : in  bit_vector(addressSize-1 downto 0);
     data_i : in  bit_vector(wordSize-1 downto 0);
-    data_o : out bit_vector(wordSize-1 downto 0);
+    data_o : out bit_vector(wordSize-1 downto 0)
   );
 end ram;
 
