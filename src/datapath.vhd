@@ -122,6 +122,21 @@ component signExtend is
   );
 end component;
 
+------------------------------------------------------------
+---------------------- registerBank ------------------------
+component registerBank is
+  port(
+    clk          : in  bit;
+    writeEnable  : in  bit;
+    readReg1Sel  : in  bit_vector(4 downto 0);
+    readReg2Sel  : in  bit_vector(4 downto 0);
+    writeRegSel  : in  bit_vector(4 downto 0);
+    writeDateReg : in  bit_vector(63 downto 0);
+    readData1    : out bit_vector(63 downto 0);
+    readData2    : out bit_vector(63 downto 0)
+  );
+end component;
+
 
 
 --- sinais do registrador pc
@@ -137,7 +152,7 @@ signal iZeroFlagAdd1: bit;
 signal iInstruction: bit_vector(31 downto 0);
 
 --- sinais banco de registradores
-signal iReadRegister2:  bit_vector(5 downto 0);
+signal iReadRegister2:  bit_vector(4 downto 0);
 signal iReadData1: bit_vector(63 downto 0);
 signal iReadData2: bit_vector(63 downto 0);
 
@@ -164,7 +179,7 @@ signal iAluResult: bit_vector(63 downto 0);
 signal iAluResultSigned: signed(63 downto 0);
 
 --- sinais do dataMemory
-signal iDataMemoryOut: bit_vector(63 downto 0);		  
+signal iDataMemoryOut: bit_vector(63 downto 0);
 
 ------------------------------------------------------------
 
@@ -175,6 +190,8 @@ pc: reg port map (clock, reset, '1', iPcIn, iPCOut);
 add1: alu port map (signed(iPcOut), signed(x"0000000000000004"), iAdd1OutSigned, "0010", iZeroFlagAdd1);
 
 instructionMemory: rom port map (iPCOut, iInstruction);
+
+regBank: registerBank port map(clock, regWrite, iInstruction(9 downto 5), iReadRegister2, iInstruction(4 downto 0), iMux4Out, iReadData1, iReadData2);
 
 mux1: mux2to1 generic map(5) port map(reg2loc, iInstruction(20 downto 16), iInstruction(4 downto 0), iReadRegister2);
 
@@ -191,11 +208,12 @@ aluEx: alu port map (signed(iDataMemoryOut), signed(iMux2Out), iAluResultSigned,
 dataMemory: ram port map(clock, memWrite, iAluResult, iDataMemoryOut);
 
 --- TODO
-mux3: mux2to1 generic map(64) port map(branch, iAluResult, iDataMemoryOut, iPcIn);
+mux3: mux2to1 generic map(64) port map(memToReg, iAdd1Out, iAdd2Out, iPcIn);
 
-mux4: mux2to1 generic map(64) port map(memToReg, iAdd1Out, iAdd2Out, iMux4Out);
+mux4: mux2to1 generic map(64) port map(branch, iAluResult, iDataMemoryOut, iMux4Out);
 
---- Conversao de signed to bit_vector	 
+
+--- Conversao de signed to bit_vector
 iAdd1Out <= bit_vector(iAdd1OutSigned);
 iAdd2Out <= bit_vector(iAdd2OutSigned);
 iAluResult <= bit_vector(iAluResultSigned);
