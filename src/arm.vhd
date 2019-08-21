@@ -11,7 +11,7 @@ end top_level;
 
 architecture toplevel of top_level is 
 
-component unit_control is
+component controlModules is
 	generic(ws: natural := 4); -- word size
 	port(
 		clk						: in bit;
@@ -31,7 +31,7 @@ component unit_control is
 	);
 end component;
 
-component data_path is
+component datapath is
 
   port(
 
@@ -69,12 +69,11 @@ begin
 
 
 
-unidadde_controle : unit_control port map (
+unidadde_controle : controlModules port map (
 		clk,						
 		reset,
 		iInstruction31to21,
 		iZero,
-		
 		iReg2Loc,			
 		iUncondBranch,	
 		iBranch,			
@@ -87,7 +86,7 @@ unidadde_controle : unit_control port map (
 );
 
 
-fluxo_de_dados 	: data_path port map(
+fluxo_de_dados 	: datapath port map(
 		clk,
 		reset,
 		iReg2Loc,
