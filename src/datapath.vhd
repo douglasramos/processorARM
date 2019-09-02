@@ -38,10 +38,11 @@ architecture datapath_arch of datapath is
 --------------------------- ALU ----------------------------
 component alu is
   port (
-    A, B : in  signed(63 downto 0); -- inputs
-    F    : out signed(63 downto 0); -- output
-    S    : in  bit_vector (3 downto 0); -- op selection
-    Z    : out bit -- zero flag
+    A, B   : in  signed(63 downto 0); -- inputs
+  	isCBNZ : in bit;
+    F      : out signed(63 downto 0); -- output
+    S      : in  bit_vector (3 downto 0); -- op selection
+    Z      : out bit -- zero flag
   );
 end component;
 
@@ -183,14 +184,16 @@ signal iDataMemoryOut: bit_vector(63 downto 0);
 
 
 signal mux3Sel : bit;  
-
+signal ZeroBranch : bit;
+signal isCBNZ : bit; 
+signal Instru3121 : bit_vector(10 downto 0);
 ------------------------------------------------------------
 
 begin
 	
 pc: reg port map (clock, reset, '1', iPcIn, iPCOut);
 
-add1: alu port map (signed(iPcOut), signed(x"0000000000000004"), iAdd1OutSigned, "0010", iZeroFlagAdd1);
+add1: alu port map (signed(iPcOut), signed(x"0000000000000004"), '0', iAdd1OutSigned, "0010", iZeroFlagAdd1);
 
 instructionMemory: rom port map (iPCOut, iInstruction);
 
@@ -202,19 +205,23 @@ signalExtend: signExtend port map (iInstruction, iSignalExtended);
 
 shift: shiftleft2 port map (iSignalExtended,iShiftleft2Out);
 
-add2: alu port map (signed(iPcOut), signed(iShiftleft2Out), iAdd2OutSigned,"0010", iZeroFlagAdd2);
+add2: alu port map (signed(iPcOut), signed(iShiftleft2Out), '0', iAdd2OutSigned,"0010", iZeroFlagAdd2);
 
 mux2: mux2to1 generic map(64) port map(aluSrc, iReadData1, iSignalExtended, iMux2Out);
 
-aluEx: alu port map (signed(iDataMemoryOut), signed(iMux2Out), iAluResultSigned, aluCtl, iZeroFlagUla);
+aluEx: alu port map (signed(iDataMemoryOut), signed(iMux2Out), isCBNZ, iAluResultSigned, aluCtl, iZeroFlagUla);
 
 dataMemory: ram port map(clock, memWrite, memRead, iAluResult, iDataMemoryOut);
 
 --- TODO
 ------------------------------------------------------------------------------------------------------------
 --Mux 3										  
-mux3Sel <= (branch and iZeroFlagUla) or uncondBranch;
+mux3Sel <= (branch and ZeroBranch) or uncondBranch;
 mux3: mux2to1 generic map(64) port map(mux3Sel, iAdd1Out, iAdd2Out, iPcIn);	 
+
+isCBNZ <= '1' when Instru3121(10 downto 3) = "01011010" else '0';
+ZeroBranch <= iZeroFlagUla xor isCBNZ;
+	
 --OBS: Notar que essas portas lógicas tiveram de
 --ser implementadas AQUI, e não na UC ou no top level, pois senão
 --deveria haver um signal "in bit" na interface do FD como SEL do mux3 aqui representado. Como isso não foi definido, optou-se por implementar as portas no fluxo de dados mesmo!
@@ -231,7 +238,8 @@ iAdd2Out <= bit_vector(iAdd2OutSigned);
 iAluResult <= bit_vector(iAluResultSigned);
 
 --- Saidas
-instruction31to21 <= iInstruction(31 downto 21);
-zero <= iZeroFlagUla;
+Instru3121 <= iInstruction(31 downto 21);
+instruction31to21 <= Instru3121;
+zero <= ZeroBranch;
 
 end datapath_arch;
