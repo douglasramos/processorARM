@@ -64,10 +64,10 @@ component ram is
     wordSize    : natural := 64
   );
   port (
-    ck, wr : in  bit;
-    addr   : in  bit_vector(addressSize-1 downto 0);
-    data_i : in  bit_vector(wordSize-1 downto 0);
-    data_o : out bit_vector(wordSize-1 downto 0)
+    ck, wr, rd : in  bit;
+    addr   	   : in  bit_vector(addressSize-1 downto 0);
+    data_i     : in  bit_vector(wordSize-1 downto 0);
+    data_o     : out bit_vector(wordSize-1 downto 0)
   );
 end component;
 
@@ -181,10 +181,13 @@ signal iAluResultSigned: signed(63 downto 0);
 --- sinais do dataMemory
 signal iDataMemoryOut: bit_vector(63 downto 0);
 
+
+signal mux3Sel : bit;  
+
 ------------------------------------------------------------
 
 begin
-
+	
 pc: reg port map (clock, reset, '1', iPcIn, iPCOut);
 
 add1: alu port map (signed(iPcOut), signed(x"0000000000000004"), iAdd1OutSigned, "0010", iZeroFlagAdd1);
@@ -205,13 +208,22 @@ mux2: mux2to1 generic map(64) port map(aluSrc, iReadData1, iSignalExtended, iMux
 
 aluEx: alu port map (signed(iDataMemoryOut), signed(iMux2Out), iAluResultSigned, aluCtl, iZeroFlagUla);
 
-dataMemory: ram port map(clock, memWrite, iAluResult, iDataMemoryOut);
+dataMemory: ram port map(clock, memWrite, memRead, iAluResult, iDataMemoryOut);
 
 --- TODO
-mux3: mux2to1 generic map(64) port map(memToReg, iAdd1Out, iAdd2Out, iPcIn);
+------------------------------------------------------------------------------------------------------------
+--Mux 3										  
+mux3Sel <= (branch and iZeroFlagUla) or uncondBranch;
+mux3: mux2to1 generic map(64) port map(mux3Sel, iAdd1Out, iAdd2Out, iPcIn);	 
+--OBS: Notar que essas portas lógicas tiveram de
+--ser implementadas AQUI, e não na UC ou no top level, pois senão
+--deveria haver um signal "in bit" na interface do FD como SEL do mux3 aqui representado. Como isso não foi definido, optou-se por implementar as portas no fluxo de dados mesmo!
 
-mux4: mux2to1 generic map(64) port map(branch, iAluResult, iDataMemoryOut, iMux4Out);
+------------------------------------------------------------------------------------------------------------
+--Mux 4
+mux4: mux2to1 generic map(64) port map(memToReg, iAluResult, iDataMemoryOut, iMux4Out);
 
+------------------------------------------------------------------------------------------------------------
 
 --- Conversao de signed to bit_vector
 iAdd1Out <= bit_vector(iAdd1OutSigned);
