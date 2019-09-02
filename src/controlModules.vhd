@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------------------------------------
+--PCS3422 - Organização e Arquitetura de Computadores II
+--Módulos de Controle
+--Autor: Grupo A - Rafael Higa
+--
+--Conteúdo do arquivo:
+--
+--	-UC do monociclo: 			   entity "controlUnit"
+--	-UC da ULA:       			   entity "ALUControl"
+--  -Entity que instancia os dois: entity "controlModules
+------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------
 --UC do monociclo
 ------------------------------------------------------------------------------------------------------
 
@@ -6,7 +18,7 @@ library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.ALL;
 
-
+						 
 entity controlUnit is
   port (  
   	 clk			   : in  bit; 
@@ -26,16 +38,17 @@ end controlUnit;
 
 architecture controlUnit of controlUnit is	
 
-type state_type is (s0, s1, s2, s3, s4, s5, s6, s7, s8);
+type state_type is (s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11);
 signal PS, NS : state_type;
 
 
-signal Rinst     : bit;	 
-signal LDUR      : bit;
-signal STUR      : bit;
-signal CBZ       : bit;
-signal I         : bit_vector(10 downto 0);
-signal B, BL, BR : bit;
+signal Rinst   				  : bit;	 
+signal LDUR     			  : bit;
+signal STUR     			  : bit;
+signal CBZ       			  : bit;
+signal B, BL, BR 			  : bit;
+signal ADDI, SUBI, ANDI, ORRI : bit;
+signal I        			  : bit_vector(10 downto 0);
 
 begin
 	
@@ -62,6 +75,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
 							
@@ -79,6 +96,14 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 											   
 					when s1=> 		
@@ -89,6 +114,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
@@ -104,7 +133,16 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
-						end if;		 
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
+						end if;
+								 
 						
 					when s2=>	  	 
 						Rinst <= '0';
@@ -114,6 +152,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;				
@@ -129,6 +171,14 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 					when s3=>		 
 						Rinst <= '0';
@@ -138,6 +188,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;	
@@ -153,6 +207,14 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 					when s4=>
 						Rinst <= '0';
@@ -162,6 +224,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
@@ -177,6 +243,14 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 					when s5=>
 						Rinst <= '0';
@@ -186,6 +260,10 @@ begin
 						B	  <= '1';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
@@ -201,6 +279,14 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 					when s6=>		 
 						Rinst <= '0';
@@ -210,6 +296,10 @@ begin
 						B	  <= '0';
 						BL	  <= '1';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
@@ -225,6 +315,14 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 					
 					when s7=>		 
@@ -235,6 +333,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '1';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
@@ -250,6 +352,158 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
+						end if;
+					when s8=>		 
+						Rinst <= '0';
+						LDUR  <= '0';
+						STUR  <= '0';
+						CBZ	  <= '0';
+						B	  <= '0';
+						BL	  <= '0';
+						BR	  <= '0';
+						ADDI  <= '1';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
+						
+						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
+							NS <= s1;
+						elsif(I = "11111000010") then
+							NS <= s2;
+						elsif(I = "11111000000") then
+							NS <= s3;
+						elsif(I(10 downto 3) = "10110100") then	   
+							NS <= s4;
+						elsif(I(10 downto 5) = "000101") then
+							NS <= s5;
+						elsif(I(10 downto 5) = "100101") then
+							NS <= s6;
+						elsif(I = "11010110000") then
+							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
+						end if;
+					when s9=>	   
+						Rinst <= '0';
+						LDUR  <= '0';
+						STUR  <= '0';
+						CBZ	  <= '0';
+						B	  <= '0';
+						BL	  <= '0';
+						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '1';
+						ANDI  <= '0';
+						ORRI  <= '0';
+						
+						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
+							NS <= s1;
+						elsif(I = "11111000010") then
+							NS <= s2;
+						elsif(I = "11111000000") then
+							NS <= s3;
+						elsif(I(10 downto 3) = "10110100") then	   
+							NS <= s4;
+						elsif(I(10 downto 5) = "000101") then
+							NS <= s5;
+						elsif(I(10 downto 5) = "100101") then
+							NS <= s6;
+						elsif(I = "11010110000") then
+							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
+						end if;
+					when s10=>	   
+						Rinst <= '0';
+						LDUR  <= '0';
+						STUR  <= '0';
+						CBZ	  <= '0';
+						B	  <= '0';
+						BL	  <= '0';
+						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '1';
+						ORRI  <= '0';
+						
+						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
+							NS <= s1;
+						elsif(I = "11111000010") then
+							NS <= s2;
+						elsif(I = "11111000000") then
+							NS <= s3;
+						elsif(I(10 downto 3) = "10110100") then	   
+							NS <= s4;
+						elsif(I(10 downto 5) = "000101") then
+							NS <= s5;
+						elsif(I(10 downto 5) = "100101") then
+							NS <= s6;
+						elsif(I = "11010110000") then
+							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
+						end if;
+					when s11=>
+						Rinst <= '0';
+						LDUR  <= '0';
+						STUR  <= '0';
+						CBZ	  <= '0';
+						B	  <= '0';
+						BL	  <= '0';
+						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '1';
+						
+						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
+							NS <= s1;
+						elsif(I = "11111000010") then
+							NS <= s2;
+						elsif(I = "11111000000") then
+							NS <= s3;
+						elsif(I(10 downto 3) = "10110100") then	   
+							NS <= s4;
+						elsif(I(10 downto 5) = "000101") then
+							NS <= s5;
+						elsif(I(10 downto 5) = "100101") then
+							NS <= s6;
+						elsif(I = "11010110000") then
+							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 					when others=>
 						Rinst <= '0';
@@ -259,6 +513,10 @@ begin
 						B	  <= '0';
 						BL	  <= '0';
 						BR	  <= '0';
+						ADDI  <= '0';
+						SUBI  <= '0';
+						ANDI  <= '0';
+						ORRI  <= '0';
 						
 						if(I(10) = '1' and I(7) = '0' and I(6) = '1' and I(5) = '0' and I(4) = '1' and I(2) = '0' and I(1) = '0' and I(0) = '0') then
 							NS <= s1;
@@ -274,30 +532,31 @@ begin
 							NS <= s6;
 						elsif(I = "11010110000") then
 							NS <= s7;
+						elsif(I(10 downto 1) = "1001000100") then  --addi
+							NS <= s8;
+						elsif(I(10 downto 1) = "1101000100") then  --subi
+							NS <= s9;							   
+						elsif(I(10 downto 1) = "1001001000") then  --andi
+							NS <= s10;
+						elsif(I(10 downto 1) = "1011001000") then  --orri
+							NS <= s11;
 						end if;
 				end case;		
 		end process;
 	
 	I <= instruction31to21;
-	--Rinst    <= I(10) and (not I(7)) and I(6) and (not I(5)) and I(4) and (not I(2)) and (not I(1)) and (not I(0));
-	--LDUR     <= '1' when I = "11111000010" 			 else '0';
-	--STUR     <= '1' when I = "11111000000" 			 else '0';
-	--CBZ      <= '1' when I(10 downto 3) = "10110100" else '0';
-	--B        <= '1' when I(10 downto 5) = "000101"   else '0';
-	--BL       <= '1' when I(10 downto 5) = "100101"   else '0';
-	--BR       <= '1' when I = "11010110000"			 else '0';
 		
-	reg2loc 	 <= '1' when STUR  = '1' or CBZ = '1'  		   else '0';
-	uncondBranch <= '1' when B = '1' or BL = '1' or BR = '1'   else '0';
-	branch       <= '1' when CBZ   = '1'                 	   else '0';
-	memRead		 <= '1' when LDUR  = '1' 			   		   else '0'; 
-	memToReg	 <= '1' when LDUR  = '1' 			   		   else '0'; 
-	memWrite	 <= '1' when STUR  = '1' 			   		   else '0';
-	aluSrc  	 <= '1' when LDUR  = '1' or STUR = '1' 		   else '0';
-	regWrite	 <= '1' when Rinst = '1' or LDUR = '1' 		   else '0';
-	aluop(1)     <= '1' when Rinst = '1' 			   		   else '0';
-	aluop(0)     <= '1' when CBZ   = '1' 			           else '0';
-		
+	reg2loc 	 <= '1' when STUR  = '1' or CBZ = '1'  		   												   else '0';
+	uncondBranch <= '1' when B = '1' or BL = '1' or BR = '1'   												   else '0';									   	
+	branch       <= '1' when CBZ   = '1'                 	   												   else '0';
+	memRead		 <= '1' when LDUR  = '1' 			   		   												   else '0'; 
+	memToReg	 <= '1' when LDUR  = '1' 			   		   												   else '0'; 
+	memWrite	 <= '1' when STUR  = '1' 			   		   												   else '0';
+	aluSrc  	 <= '1' when LDUR  = '1' or STUR = '1' 		   												   else '0';
+	regWrite	 <= '1' when Rinst = '1' or LDUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
+	aluop(1)     <= '1' when Rinst = '1' or LDUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
+	aluop(0)     <= '1' when CBZ   = '1' 															           else '0';
+
 	
 end controlUnit;
 
@@ -324,27 +583,13 @@ signal I : bit_vector(10 downto 0);
 begin
 
 	
-	process(I,aluop)
-	begin
-		if(aluop = "10") then
-			if(I = "10001011000") then 	   --add
-				aluCtl <= "0010";
-			elsif(I = "11001011000") then  --sub
-				aluCtl <= "0110";
-			elsif(I = "10001010000") then  --and
-				aluCtl <= "0000";
-			elsif(I = "10101010000") then  --or
-				aluCtl <= "0001";
-			end if;				 
-		elsif(aluop = "00") then
-			aluCtl <= "0010";
-		elsif(aluop = "01") then
-			aluCtl <= "0111";
-		else
-			aluCtl <= "0000";
-		end if;
-		
-	end process;
+	aluCtl <= "0010" when aluop = "10" and (I = "10001011000" or I(10 downto 1) = "1001000100") else
+			  "0110" when aluop = "10" and (I = "11001011000" or I(10 downto 1) = "1101000100") else
+			  "0000" when aluop = "10" and (I = "10001010000" or I(10 downto 1) = "1001001000") else
+			  "0001" when aluop = "10" and (I = "10101010000" or I(10 downto 1) = "1011001000") else
+		 	  "0010" when aluop = "00" else
+		  	  "0111" when aluop = "01" else
+		   	  "0000";
 
 	I <= instruction31to21;	   
 	

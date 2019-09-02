@@ -2,7 +2,12 @@
 --! @file signExtend.vhdl
 --! @author balbertini@usp.br
 --! @date 20180730
---! @brief 2-complement sign extension used on polileg.
+--! @brief 2-complement sign extension used on polileg.		
+
+--Modificado por Grupo A:
+	--instruções load
+	--instruções immediate
+	--instrução CBZ
 -------------------------------------------------------
 entity signExtend is
 	-- Size of output is expected to be greater than input
@@ -17,18 +22,21 @@ end signExtend;
 
 architecture combinational of signExtend is
 signal AllInstruction : bit_vector(31 downto 0);
-signal instru31to21   : bit_vector(10 downto 0);
+signal I31_21         : bit_vector(10 downto 0);
 signal BZero		  : bit_vector(18 downto 0);
-signal LwSwExtend 	  : bit_vector(8 downto 0);
+signal LwSwExtend 	  : bit_vector(8  downto 0);
 signal oLS			  : bit_vector(63 downto 0);
 signal oCBZ			  : bit_vector(63 downto 0);
+signal oImmediate	  : bit_vector(63 downto 0);
+signal immediateField : bit_vector(10 downto 0);
 begin	
 	AllInstruction <= i;		  
 	
-	instru31to21 <= AllInstruction(31 downto 21);
+	I31_21 <= AllInstruction(31 downto 21);
 	
-	LwSwExtend <= AllInstruction(20 downto 12);
-	BZero <= AllInstruction(23 downto 5);
+	LwSwExtend 	   <= AllInstruction(20 downto 12);
+	BZero 		   <= AllInstruction(23 downto 5);
+	immediateField <= AllInstruction(20 downto 10);
 	
 	
 	-------------------------------------------------------------------
@@ -54,10 +62,22 @@ begin
 	end generate;		
 	
 	-------------------------------------------------------------------
+	--Extend dos 12 bits: Immediate Field
+	-------------------------------------------------------------------
+	lsbI: for idxI in 0 to (immediateField'length-1) generate
+		oImmediate(idxI) <= immediateField(idxI);
+	end generate;
+	
+	msbI: for idxI in (immediateField'length) to (oImmediate'length-1) generate
+		oImmediate(idxI) <= immediateField(immediateField'length-1);
+	end generate;
+		
+	-------------------------------------------------------------------
 	--Escolha final do output
 	-------------------------------------------------------------------
 	
-	o <= oLS  when instru31to21 = "11111000010" or instru31to21 = "11111000000" else
-		 oCBZ when instru31to21(10 downto 3) = "10110100";
+	o <= oLS  		when I31_21 = "11111000010" or I31_21 = "11111000000" else
+		 oCBZ 		when I31_21(10 downto 3) = "10110100" else
+		 oImmediate when I31_21(10 downto 1) = "1001000100" or I31_21(10 downto 1) = "1101000100" or I31_21(10 downto 1) = "1001001000" or I31_21(10 downto 1) = "1011001000";
 		 
 end combinational;
