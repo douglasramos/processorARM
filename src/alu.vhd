@@ -15,7 +15,6 @@ use ieee.numeric_bit.all;
 entity alu is
   port (
     A, B   : in  signed(63 downto 0); -- inputs
-  	isCBNZ : in  bit;
     F      : out signed(63 downto 0); -- output
     S      : in  bit_vector (3 downto 0); -- op selection
     Z      : out bit -- zero flag
@@ -40,9 +39,8 @@ begin
   altb(63 downto 1) <= (others=>'0');
   altb(0) <= '1' when (A<B) else '0';
   -- Generating zero flag
-  Z_true <= '1' when (aluout=0) else '0';
+  Z <= '1' when (aluout=0) else '0';
 	
-  Z <= Z_true xor isCBNZ;
   
   -- Copying temporary signal to output
   F <= aluout;

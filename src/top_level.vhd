@@ -28,7 +28,7 @@ component controlModules is
   );
 end component;
 													
-component datapath is
+component datapathPipeline is
   port(
     clock             : in  bit;
     reset   		  : in  bit;
@@ -58,7 +58,7 @@ begin
 
 unidades_controle : controlModules port map (clk, reset, instruction31to21, reg2loc, uncondBranch, branch, memRead, memToReg, memWrite, aluSrc, regWrite, aluCtl);
 
-fluxo_de_dados 	: datapath port map(clk, reset, reg2loc, uncondBranch, branch, memRead, memToReg, aluCtl, memWrite, aluSrc, regWrite, instruction31to21, zero);
+fluxo_de_dados 	: datapathPipeline port map(clk, reset, reg2loc, uncondBranch, branch, memRead, memToReg, aluCtl, memWrite, aluSrc, regWrite, instruction31to21, zero);
 
 --OBS: Notar que as portas lógicas em azul no desenho do fluxo de dados tiveram que ser implementadas no fluxo de dados
 --e não na UC ou no top level, caso contrário, deveria haver um sinal SEL para o multiplexador 3 (vide datapath.vhd)
