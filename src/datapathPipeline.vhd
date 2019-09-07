@@ -86,7 +86,7 @@ architecture datapath_arch of datapath is
     	wordSize    : natural := 64
   	);
   	port (
-    	ck, wr, rd : in  bit;
+    	ck, wr     : in  bit;
 	    addr   	   : in  bit_vector(addressSize-1 downto 0);
     	data_i     : in  bit_vector(wordSize-1 downto 0);
     	data_o     : out bit_vector(wordSize-1 downto 0)
@@ -342,7 +342,8 @@ end component;
 ------------------------------------------------------------
 --Estágio MEM
 	signal iDataMemoryOut : bit_vector(63 downto 0);
-	signal ZeroBranch 	  : bit;
+	signal ZeroBranch 	  : bit;	 
+	signal rwxor		  : bit;
 
 ------------------------------------------------------------
 --Buffer MEM/WB
@@ -433,8 +434,8 @@ end component;
 -------------------------------------------------------------------------------------------------------
 --Estágio MEM
 -------------------------------------------------------------------------------------------------------
-
-		dataMemory: ram port map(clock, Oexmem_memWrite, Oexmem_memRead, Oexmem_AluResult, Oexmem_ReadData2, iDataMemoryOut);
+		rwxor <= Oexmem_memWrite xor Oexmem_memRead;
+		dataMemory: ram port map(clock, rwxor, Oexmem_AluResult, Oexmem_ReadData2, iDataMemoryOut);
 	
 		PCSrc <= (ZeroBranch and Oexmem_branch) or Oexmem_uncondBranch;
 		ZeroBranch <= Oexmem_ZeroFlag xor Oexmem_isCBNZ;
@@ -749,3 +750,50 @@ begin
 	
 	
 end MEMWBArchi;
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+--===========================================================================================================================
+--registerBank
+--===========================================================================================================================
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity registerBank is
+  port(
+    clk          : in  bit;
+    writeEnable  : in  bit;
+    readReg1Sel  : in  bit_vector(4 downto 0);
+    readReg2Sel  : in  bit_vector(4 downto 0);
+    writeRegSel  : in  bit_vector(4 downto 0);
+    writeDateReg : in  bit_vector(63 downto 0);
+    readData1    : out bit_vector(63 downto 0);
+    readData2    : out bit_vector(63 downto 0)
+  );
+end registerBank;
+
+
+architecture registerBank_arch of registerBank is
+  type registerFile is array(0 to 31) of bit_vector(63 downto 0);
+  signal registers : registerFile := ((others=> (others=>'0')));
+begin
+
+  readData1 <= registers(to_integer(unsigned(to_stdlogicvector(readReg1Sel))));
+  readData2 <= registers(to_integer(unsigned(to_stdlogicvector(readReg2Sel))));
+
+  process (clk)
+    begin
+      --- falling edge
+      if (clk='0' and clk'event) then
+       -- Write
+        if writeEnable = '1' then
+          registers(to_integer(unsigned(to_stdlogicvector(writeRegSel)))) <= writeDateReg;  -- Write
+        end if ;
+      end if ;
+  end process;
+
+end registerBank_arch;

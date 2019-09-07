@@ -9,7 +9,7 @@ entity ram is
     wordSize    : natural := 32
   );
   port (
-    ck, wr, rd : in  bit;
+    ck, wr     : in  bit;
     addr       : in  bit_vector(addressSize-1 downto 0);
     data_i     : in  bit_vector(wordSize-1 downto 0);
     data_o     : out bit_vector(wordSize-1 downto 0)
@@ -32,5 +32,5 @@ begin
     
 	end if;
   end process;
-	data_o <= mem(to_integer(unsigned(to_stdlogicvector(addr)))) when rd = '1' else (others=>'0');  
+	data_o <= mem(to_integer(unsigned(to_stdlogicvector(addr))));  
 end vendorfree;
