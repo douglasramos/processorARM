@@ -631,7 +631,7 @@ begin
 	memRead		 <= '1' when LDUR  = '1' 			   		   												   else '0'; 
 	memToReg	 <= '1' when LDUR  = '1' 			   		   												   else '0'; 
 	memWrite	 <= '1' when STUR  = '1' 			   		   												   else '0';
-	aluSrc  	 <= '1' when LDUR  = '1' or STUR = '1' 		   												   else '0';
+	aluSrc  	 <= '1' when LDUR  = '1' or STUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
 	regWrite	 <= '1' when Rinst = '1' or LDUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
 	aluop(1)     <= '1' when Rinst = '1' or LDUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
 	aluop(0)     <= '1' when CBZ   = '1' or CBNZ = '1'												           else '0';
