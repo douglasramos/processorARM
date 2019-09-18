@@ -7,12 +7,12 @@
 -- Description:
 --		Fluxo de dados com Pipeline
 -- Conteúdo:
---	-Entity "datapath"     : pipeline inteiro - linha 20
---	-Entity "IFID"         : Buffer IF/ID
---	-Entity "IDEX"    	   : Buffer ID/EX
---  -Entity "EXMEM"   	   : Buffer EX/MEM
---  -Entity "MEMWB"   	   : Buffer MEM/WB	
---	-Entity "registerBank" : Banco de Registradores
+--	-Entity "datapath"     : pipeline inteiro 		- linha 20
+--	-Entity "IFID"         : Buffer IF/ID			- linha 498
+--	-Entity "IDEX"    	   : Buffer ID/EX			- linha 544
+--  -Entity "EXMEM"   	   : Buffer EX/MEM			- linha 637
+--  -Entity "MEMWB"   	   : Buffer MEM/WB			- linha 727
+--	-Entity "registerBank" : Banco de Registradores	- linha 793
 --------------------------------------------------------------------------------
 
 --=============================================================================================================================
@@ -43,12 +43,12 @@ entity datapath is
     aluSrc            : in bit;
     regWrite          : in bit;
     instruction31to21 : out bit_vector(10 downto 0);
-    zero              : out bit
-
+    zero              : out bit;					  --Os dois sinais abaixo não contam na interface proposta para o monociclo, mas foram acrescentados para que fosse possível "expor saída de dados e endereço", como no enunciado do monociclo.
+	dataOut			  : out bit_vector(63 downto 0);  --Saída de dados. Valor da saída do multiplexador do estágio WB
+	IFStagePC		  : out bit_vector(63 downto 0)   --Endereço do ProgramCounter no estágio IF
   );
 
 end entity datapath;
-
 architecture datapath_arch of datapath is													 
 
 --===========================================================================================
@@ -56,6 +56,24 @@ architecture datapath_arch of datapath is
 --Declaração de components
 --===========================================================================================
 --===========================================================================================
+
+--Unidade de controle, utilizada dentro do datapath com fins de TESTE somente.
+--component controlModules is
+--  port (  	  
+--  	 clk			   : in  bit;
+--  	 reset			   : in  bit;
+--  	 instruction31to21 : in  bit_vector(10 downto 0);
+--     reg2loc 	 	   : out bit;	 
+--     uncondBranch 	   : out bit;								 
+--     branch		  	   : out bit;					  
+--     memRead	  	   : out bit;			  
+--     memToReg	  	   : out bit;	  
+--     memWrite	  	   : out bit;				  
+--     aluSrc		  	   : out bit;	  
+--     regWrite	  	   : out bit; 
+--	 aluCtl			   : out bit_vector(3 downto 0)
+--  );
+--end component;													 
 
 ------------------------------------------------------------
 --------------------------- ALU ----------------------------
@@ -353,8 +371,18 @@ end component;
 --===========================================================================================
 --===========================================================================================
 
-	begin																					
+	--Sinais para TESTE com unidade de controle
+		--signal reg2loc,uncondBranch,branch,memRead,memToReg,memWrite,aluSrc,regWrite 	 	   : bit;	 
+		--signal aluCtl 																		   : bit_vector(3 downto 0);	
+		--signal instruction31to21UC, instruction31to21										   : bit_vector (10 downto 0);
+	 
+	begin												
 	
+	--Unidade de controle, usada aqui somente para TESTE
+--		instruction31to21UC <= instruction31to21;
+--		UCTest : controlModules port map(clock, reset, instruction31to21UC, reg2loc, uncondBranch, branch, memRead, memToReg, memWrite, aluSrc, 
+--		regWrite, aluCtl);
+		
 -------------------------------------------------------------------------------------------------------
 --Estágio IF
 -------------------------------------------------------------------------------------------------------
@@ -450,7 +478,10 @@ end component;
 
 --- Saidas
 	instruction31to21 <= IDInstruction31to21;
-	zero <= ZeroBranch;
+	zero 			  <= ZeroBranch;
+	dataOut 		  <= iMux4Out;	 
+	IFStagePC 		  <= iPCOut;
+	
 
 end datapath_arch;
 

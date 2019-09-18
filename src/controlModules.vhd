@@ -5,9 +5,9 @@
 --
 --Conteúdo do arquivo:
 --
---	-UC do monociclo: 			   entity "controlUnit"
---	-UC da ULA:       			   entity "ALUControl"
---  -Entity que instancia os dois: entity "controlModules
+--	-UC do monociclo: 			   entity "controlUnit"    - linnha 22
+--	-UC da ULA:       			   entity "ALUControl"     - linha 679
+--  -Entity que instancia os dois: entity "controlModules" - linha 713
 ------------------------------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ begin
 				if (reset = '1') then 
 					PS <= s0;	 
 					
-				elsif (clk'event and clk = '1') then
+				elsif (clk'event and clk = '0') then
 					PS <= NS;
 				end if;
 	end process sync_proc;
@@ -106,8 +106,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
-							NS <= s12;
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
+							NS <= s12; 
+						else
+							NS <= s0;
 						end if;
 											   
 					when s1=> 		
@@ -146,8 +148,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;							
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 								 
 						
@@ -187,8 +191,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s3=>		 
 						Rinst <= '0';
@@ -226,8 +232,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s4=>
 						Rinst <= '0';
@@ -265,8 +273,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s5=>
 						Rinst <= '0';
@@ -304,8 +314,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s6=>		 
 						Rinst <= '0';
@@ -343,8 +355,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					
 					when s7=>		 
@@ -383,8 +397,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s8=>		 
 						Rinst <= '0';
@@ -422,8 +438,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s9=>	   
 						Rinst <= '0';
@@ -461,8 +479,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s10=>	   
 						Rinst <= '0';
@@ -500,8 +520,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when s11=>
 						Rinst <= '0';
@@ -539,8 +561,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 						
 					when s12=>
@@ -578,8 +602,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 					when others=>
 						Rinst <= '0';
@@ -617,8 +643,10 @@ begin
 							NS <= s10;
 						elsif(I(10 downto 1) = "1011001000") then  --orri
 							NS <= s11;									 
-						elsif(I(10 downto 3) = "01011010") then    --CBNZ
+						elsif(I(10 downto 3) = "10110101") then    --CBNZ
 							NS <= s12;
+						else
+							NS <= s0;
 						end if;
 				end case;		
 		end process;
@@ -633,7 +661,7 @@ begin
 	memWrite	 <= '1' when STUR  = '1' 			   		   												   else '0';
 	aluSrc  	 <= '1' when LDUR  = '1' or STUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
 	regWrite	 <= '1' when Rinst = '1' or LDUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
-	aluop(1)     <= '1' when Rinst = '1' or LDUR = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' else '0';
+	aluop(1)     <= '1' when Rinst = '1' or ADDI = '1' or SUBI = '1' or ANDI = '1' or ORRI = '1' 			   else '0';
 	aluop(0)     <= '1' when CBZ   = '1' or CBNZ = '1'												           else '0';
 
 	
