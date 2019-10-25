@@ -11,7 +11,7 @@ use IEEE.std_logic_1164.all;
 
 package types is
 
-    subtype word_type     is std_logic_vector(31 downto 0);
+    subtype word_type     is bit_vector(31 downto 0);
 	type word_vector_type is array(natural range <>) of word_type;
 
 	constant word_vector_init: word_type := (others => '0');

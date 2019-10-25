@@ -8,7 +8,8 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all; 
+use IEEE.numeric_std.all;
+use IEEE.numeric_bit.all;
 
 -- importa os types do projeto
 library pipeline;
@@ -22,21 +23,21 @@ entity Memory is
     port (
 		
 		-- I/O relacionados cache de Instrucoes
-		ci_enable:     in   std_logic := '0';
-		ci_mem_rw:     in   std_logic; --- '1' write e '0' read
-		ci_addr:       in   std_logic_vector(15 downto 0);
+		ci_enable:     in   bit := '0';
+		ci_mem_rw:     in   bit; --- '1' write e '0' read
+		ci_addr:       in   bit_vector(15 downto 0);
 		ci_data_block: out  word_vector_type(15 downto 0) := (others => word_vector_init);
-		ci_mem_ready:  out  std_logic := '0'; 
+		ci_mem_ready:  out  bit := '0'; 
 		
 		
 		-- I/O relacionados cache de dados
-		cd_clock:     in  std_logic;
-		cd_enable:    in  std_logic;
-		cd_mem_rw:    in  std_logic; --- '1' write e '0' read
-		cd_addr:      in  std_logic_vector(15 downto 0);
+		cd_clock:     in  bit;
+		cd_enable:    in  bit;
+		cd_mem_rw:    in  bit; --- '1' write e '0' read
+		cd_addr:      in  bit_vector(15 downto 0);
 		cd_data_in:   in word_vector_type(15 downto 0);
 		cd_data_out:  out word_vector_type(15 downto 0) := (others => word_vector_init);
-		cd_mem_ready: out std_logic := '0' 
+		cd_mem_ready: out bit := '0' 
 		
         
     );
@@ -72,12 +73,12 @@ architecture Memory_arch of Memory is
 	signal ci_index: natural;
 	signal cd_block_addr: natural;
 	signal cd_index: natural;
-	signal enable: std_logic;
+	signal enable: bit;
 	
 	
 begin 
 	
-	-- obtem index a partir do endereço de entrada
+	-- obtem index a partir do endereï¿½o de entrada
 	ci_block_addr <= to_integer(unsigned(ci_addr(15 downto 6)));
 	ci_index <= ci_block_addr mod number_of_blocks;	
 	
