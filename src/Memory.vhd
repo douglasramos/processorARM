@@ -8,8 +8,8 @@
 
 library IEEE;
 use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all;
 use IEEE.numeric_bit.all;
+use std.textio.all;
 
 -- importa os types do projeto
 library pipeline;
@@ -60,15 +60,15 @@ architecture Memory_arch of Memory is
 	--- funcoes de acesso a arquivo
 
 	impure function readFile(file_name : in string) return mem_type is
-		file     file_  : text open read_mode is file_name;
-		variable line_    : line;
+		file     file_f  : text open read_mode is file_name;
+		variable line_l    : line;
 		variable temp_word  : bit_vector(31 downto 0);
 		variable temp_mem : mem_type;
 		begin
 			for bloc in 0 to number_of_blocks - 1 loop
 				for offset in 0 to words_per_block - 1 loop
-					readline(file_, line_);
-					read(line_, temp_word);
+					readline(file_f, line_l);
+					read(line_l, temp_word);
 					temp_mem(bloc).data(offset) := temp_word;
 				end loop;
 		  end loop;
@@ -76,7 +76,7 @@ architecture Memory_arch of Memory is
 		end;
 	
 	--- inicializa memoria
-	signal memory : mem_type := readFile("memory.dat")
+	signal memory : mem_type := readFile("memory.dat");
 
 	--- Demais sinais internos
 	signal ci_block_addr: natural;
@@ -88,7 +88,7 @@ architecture Memory_arch of Memory is
 	
 begin 
 	
-	-- obtem index a partir do endere�o de entrada
+	-- obtem index a partir do endereço de entrada
 	ci_block_addr <= to_integer(unsigned(ci_addr(15 downto 6)));
 	ci_index <= ci_block_addr mod number_of_blocks;	
 	
