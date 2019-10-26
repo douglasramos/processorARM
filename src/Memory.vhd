@@ -35,7 +35,7 @@ entity Memory is
 		cd_enable:    in  bit;
 		cd_mem_rw:    in  bit; --- '1' write e '0' read
 		cd_addr:      in  bit_vector(15 downto 0);
-		cd_data_in:   in word_vector_type(15 downto 0);
+		cd_data_in:   in  word_vector_type(15 downto 0);
 		cd_data_out:  out word_vector_type(15 downto 0) := (others => word_vector_init);
 		cd_mem_ready: out bit := '0' 
 		
@@ -50,24 +50,34 @@ architecture Memory_arch of Memory is
 	constant block_size: positive := words_per_block * 4; --- 16 * 4 = 64Bytes
     constant number_of_blocks: positive := mem_size / block_size; -- 1024 blocos
 		
-	
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
-	    type mem_row_type is record
+	type mem_row_type is record
         data:  word_vector_type(words_per_block - 1 downto 0);
-    	end record mem_row_type;
+    end record mem_row_type;
 
-    type mem_type is array (number_of_blocks - 1 downto 0) of mem_row_type;
+	type mem_type is array (number_of_blocks - 1 downto 0) of mem_row_type;
 	
-	constant mew_row_instruction : mem_row_type :=  (data => (0 => word_vector_instruction1,
-													   		  1 => word_vector_instruction2,
-													   		  others => word_vector_init)); 
-													   
-	constant mem_row_init : mem_row_type :=  (data => (others => word_vector_init));
+	--- funcoes de acesso a arquivo
+
+	impure function readFile(file_name : in string) return mem_type is
+		file     file_  : text open read_mode is file_name;
+		variable line_    : line;
+		variable temp_word  : bit_vector(31 downto 0);
+		variable temp_mem : mem_type;
+		begin
+			for bloc in 0 to number_of_blocks - 1 loop
+				for offset in 0 to words_per_block - 1 loop
+					readline(file_, line_);
+					read(line_, temp_word);
+					temp_mem(bloc).data(offset) := temp_word;
+				end loop;
+		  end loop;
+		  return temp_mem;
+		end;
 	
-	--- definicao do cache												 
-    signal memory: mem_type := (192 => mew_row_instruction,
-								others => mem_row_init);
-	
+	--- inicializa memoria
+	signal memory : mem_type := readFile("memory.dat")
+
 	--- Demais sinais internos
 	signal ci_block_addr: natural;
 	signal ci_index: natural;
