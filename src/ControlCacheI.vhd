@@ -17,36 +17,36 @@ use pipeline.types.all;
 
 entity ControlCacheI is
     generic (
-        access_time: in time := 5 ns
+        accessTime: in time := 5 ns
     );
     port (
 			
 		-- I/O relacionados ao stage IF
-		clk:    in std_logic;
-        stall:  out std_logic := '0';
-		pc:     in word_type;
+		clk:    in bit;
+        stall:  out bit := '0';
+		pc:     in wordType;
 		
 		-- I/O relacionados ao cache
-		hit_signal:      in  std_logic;
-		write_options:   out std_logic := '0';
-		update_info:     out std_logic := '0';
+		hitSignal:      in  bit;
+		writeOptions:   out bit := '0';
+		updateInfo:     out bit := '0';
 		
-        -- I/O relacionados a Memória princial
-		mem_ready:      in  std_logic;
-		mem_rw:         out std_logic := '0';  --- '1' write e '0' read
-        mem_enable:     out std_logic := '0'
+        -- I/O relacionados a Memï¿½ria princial
+		memReady:      in  bit;
+		memRW:         out bit := '0';  --- '1' write e '0' read
+        memEnable:     out bit := '0'
         
     );
 end entity ControlCacheI;
 
-architecture ControlCacheI_arch of ControlCacheI is	 	  
+architecture ControlCacheIArch of ControlCacheI is	 	  
 							  
 	-- Definicao de estados
     type states is (INIT, READY, CTAG, CTAG2, HIT, MISS, MEM);
     signal state: states := INIT; 
 	
 	-- debug
-    signal state_d: std_logic_vector(2 downto 0);
+    signal state_d: bit_vector(2 downto 0);
 	
 begin 
 	process (clk, pc)									  
@@ -68,7 +68,7 @@ begin
 					
 				--- estado Compare Tag
 				when CTAG =>
-					if hit_signal = '1' then 
+					if hitSignal = '1' then 
 					   state <= HIT;
 
 					else -- Miss
@@ -79,7 +79,7 @@ begin
 				--- estado Compare Tag2 
 				--- (segunda comparacao apos MISS)
 				when CTAG2 =>
-					if hit_signal = '1' then 
+					if hitSignal = '1' then 
 					   state <= HIT;
 
 					else -- Miss
@@ -93,7 +93,7 @@ begin
 					
 				--- estado Miss
 				when MISS =>
-					if mem_ready = '1' then
+					if memReady = '1' then
 						state <= MEM;
                     end if;
 					
@@ -109,22 +109,22 @@ begin
 	
 	--- saidas ---
 	
-	-- mem_rw
-	mem_rw <= '0'; -- sempre leitra
+	-- memRW
+	memRW <= '0'; -- sempre leitra
 	
 	-- stall -- trava pipeline
-	stall <= '1' after access_time when state = MISS  or 
+	stall <= '1' after accessTime when state = MISS  or 
 										state = MEM   or 
 										state = CTAG2 else '0';  
 	         
 	-- compare_tag
-	write_options <= '1' when state = MEM else '0';
+	writeOptions <= '1' when state = MEM else '0';
 	         		 
-	-- update_info
-	update_info <= '1' when state = MEM else '0';
+	-- updateInfo
+	updateInfo <= '1' when state = MEM else '0';
 	         	   				  
-    -- mem_enable		
-	mem_enable <= '1' when state = MISS else '0';
+    -- memEnable		
+	memEnable <= '1' when state = MISS else '0';
 		          
 
-end architecture ControlCacheI_arch;
+end architecture ControlCacheIArch;

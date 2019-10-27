@@ -17,27 +17,27 @@ use pipeline.types.all;
 
 entity ControlCacheD is
     generic (
-        access_time: in time := 5 ns
+        accessTime: in time := 5 ns
     );
     port (			  
 			
 		-- I/O relacionados ao stage MEM
-		clk:            in std_logic;
-		clk_pipeline:   in  std_logic;
-        cpu_write:      in  std_logic;
-		cpu_addr:       in  std_logic_vector(15 downto 0);
-		stall:          out std_logic := '0';
+		clk:            in bit;
+		clk_pipeline:   in  bit;
+        cpu_write:      in  bit;
+		cpu_addr:       in  bit_vector(15 downto 0);
+		stall:          out bit := '0';
 		
 		-- I/O relacionados ao cache
-		dirty_bit:      in  std_logic;
-		hit_signal:     in  std_logic;
-		write_options:  out std_logic_vector(1 downto 0) := "00";
-		update_info:    out std_logic := '0';
+		dirtyBit:      in  bit;
+		hitSignal:     in  bit;
+		writeOptions:  out bit_vector(1 downto 0) := "00";
+		updateInfo:    out bit := '0';
 		
         -- I/O relacionados a Memoria princial
-		mem_ready:      in  std_logic;
-		mem_rw:         out std_logic := '0';  --- '1' write e '0' read
-        mem_enable:     out std_logic := '0'
+		memReady:      in  bit;
+		memRW:         out bit := '0';  --- '1' write e '0' read
+        memEnable:     out bit := '0'
         
     );
 end entity ControlCacheD;
@@ -67,7 +67,7 @@ begin
 				--- estado Compare Tag
 				when CTAG =>
 					if cpu_write = '0' then	  -- Leitura
-						if hit_signal = '1' then 
+						if hitSignal = '1' then 
 					   		state <= HIT;
 
 						else -- Miss
@@ -75,9 +75,9 @@ begin
                 		end if;
 
 					elsif cpu_write = '1' and clk_pipeline = '1' then -- Escrita no primeiro ciclo
-						if dirty_bit = '1' then
+						if dirtyBit = '1' then
 							state <= MWRITE;	-- precisa colocar dado atual na Memoria primeiro
-						elsif dirty_bit = '0' then
+						elsif dirtyBit = '0' then
 						 	state <= WRITE; -- pode ja escrever no cache
 						end if;
                 	end if;
@@ -88,9 +88,9 @@ begin
 				
 				--- estado Memory Write
 				when MWRITE =>
-					if mem_ready = '1' then
+					if memReady = '1' then
 						state <= READY;
-					elsif mem_ready = '0' then
+					elsif memReady = '0' then
 						state <= MWRITE;
 					end if;
 				
@@ -98,7 +98,7 @@ begin
 				--- estado Compare Tag2 
 				--- (segunda comparacao apos MISS)
 				when CTAG2 =>
-					if hit_signal = '1' then 
+					if hitSignal = '1' then 
 					   state <= HIT;
 
 					else -- Miss
@@ -112,7 +112,7 @@ begin
 					
 				--- estado Miss
 				when MISS =>
-					if mem_ready = '1' then
+					if memReady = '1' then
 						state <= MREADY;
                     end if;
 					
@@ -134,17 +134,17 @@ begin
 					  state = CTAG2  or
 					  state = MWRITE else '0';  
 	         
-	-- write_options
-	write_options <= "01" when state = MREADY   else
+	-- writeOptions
+	writeOptions <= "01" when state = MREADY   else
         	         "10" when state = WRITE else 
 		             "00";
 	         		 
-	-- update_info
-	update_info <= '1' when state = MREADY else '0';
+	-- updateInfo
+	updateInfo <= '1' when state = MREADY else '0';
 	         	   				  
     -- memory		
-	mem_enable <= '1' when state = MISS   else '0';
-	mem_rw     <= '1' when state = MWRITE else '0';
+	memEnable <= '1' when state = MISS   else '0';
+	memRW     <= '1' when state = MWRITE else '0';
 	
 
 end architecture ControlCacheD_arch;

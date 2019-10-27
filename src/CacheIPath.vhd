@@ -17,73 +17,73 @@ use pipeline.types.all;
 
 entity CacheI is
     generic (
-        access_time: in time := 5 ns
+        accessTime: in time := 5 ns
     );
     port (
 		
 		-- I/O relacionados ao controle
-		write_options:   in std_logic;
-		update_info:     in std_logic; 
-		hit:             out std_logic := '0';
+		writeOptions:   in bit;
+		updateInfo:     in bit; 
+		hit:             out bit := '0';
 		
 		-- I/O relacionados ao IF stage
-        cpu_adrr: in  std_logic_vector(15 downto 0);
-        data_out: out word_type;	
+        cpuAdrr: in  bit_vector(15 downto 0);
+        dataOut: out wordType;	
 
         -- I/O relacionados a Memoria princial
-        mem_bloco_data: in  word_vector_type(15 downto 0);
-		mem_addr:       out std_logic_vector(15 downto 0) := (others => '0')
+        memBlocoData: in  wordVectorType(15 downto 0);
+		memAddr:      out bit_vector(15 downto 0) := (others => '0')
 		
 		   
     );
 end entity CacheI;
 
-architecture CacheI_arch of CacheI is	 	  
+architecture CacheIArch of CacheI is	 	  
 							  
-	constant cache_size: positive := 2**14; -- 16KBytes = 4096 * 4 bytes (4096 words de 32bits)
-	constant palavras_por_bloco: positive := 16;
-	constant bloco_size: positive := palavras_por_bloco * 4; --- 16 * 4 = 64Bytes
-    constant number_of_blocks: positive := cache_size / bloco_size; -- 256 blocos
+	constant cacheSize:        positive := 2**14; -- 16KBytes = 4096 * 4 bytes (4096 words de 32bits)
+	constant palavrasPorBloco: positive := 16;
+	constant blocoSize:        positive := palavrasPorBloco * 4; --- 16 * 4 = 64Bytes
+    constant numberOfBlocks:   positive := cacheSize / blocoSize; -- 256 blocos
 	
 	--- Cada "linha" no cache possui valid + tag + data
-	    type cache_row_type is record
-        valid: std_logic;
-        tag:   std_logic_vector(1 downto 0);
-        data:  word_vector_type(palavras_por_bloco - 1 downto 0);
-    end record cache_row_type;
+	    type cacheRowType is record
+        valid: bit;
+        tag:   bit_vector(1 downto 0);
+        data:  wordVectorType(palavrasPorBloco - 1 downto 0);
+    end record cacheRowType;
 
-    type cache_type is array (number_of_blocks - 1 downto 0) of cache_row_type;
+    type cacheType is array (numberOfBlocks - 1 downto 0) of cacheRowType;
 	
-	constant cache_row_init : cache_row_type := (valid => '0',
+	constant cache_row_init : cacheRowType := (valid => '0',
 												 tag => (others => '0'),   
 												 data => (others => word_vector_init));
 
 	
-	constant cache_row_instruction : cache_row_type := (valid => '1',
+	constant cache_row_instruction : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => word_vector_instruction1,
 												 		  1 => word_vector_instruction2,
 												 		  others => word_vector_init));
 												 
-	constant cache_row_instruction_nop : cache_row_type := (valid => '1',
+	constant cache_row_instruction_nop : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => word_vector_instruction1,
 												 		  4 => word_vector_instruction2,
 												 		  others => word_vector_init));
 														   
-    constant cache_row_instruction2 : cache_row_type := (valid => '1',
+    constant cache_row_instruction2 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => word_vector_instruction3,
 												 		  1 => word_vector_instruction4,
 												 		  others => word_vector_init));
 												 
-	constant cache_row_instruction_nop2 : cache_row_type := (valid => '1',
+	constant cache_row_instruction_nop2 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => word_vector_instruction3,
 												 		  4 => word_vector_instruction4,
 												 		  others => word_vector_init));
 														   
-   	constant cache_row_instruction_t1 : cache_row_type := (valid => '1',
+   	constant cache_row_instruction_t1 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => j_10,
 												 		  1 => jal_20,
@@ -97,34 +97,34 @@ architecture CacheI_arch of CacheI is
 														  9 => slti_r1_r2_20,
 														  others => word_vector_init));	
 														   
-	constant cache_row_instruction_t2 : cache_row_type := (valid => '1',
+	constant cache_row_instruction_t2 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => add_r1_r2_r3,
 												 		  1 => add_r4_r5_r6,
 												 		  2 => add_r7_r8_r9,
 												 		  others => word_vector_init));	
 														   
- 	constant cache_row_instruction_t3 : cache_row_type := (valid => '1',
+ 	constant cache_row_instruction_t3 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => add_0_r1_r2,
 												 		  1 => addi_r3_0_5,
 												 		  others => word_vector_init));	
 
-  	constant cache_row_instruction_t5 : cache_row_type := (valid => '1',
+  	constant cache_row_instruction_t5 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => lw_r1_20_r2,
 												 		  1 => add_r3_r4_r5,
 												 		  2 => add_r6_r1_r7,
 												 		  others => word_vector_init));	
 														   
-   	constant cache_row_instruction_t6 : cache_row_type := (valid => '1',
+   	constant cache_row_instruction_t6 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => add_r1_r1_r2,
 												 		  1 => add_r1_r1_r3,
 												 		  2 => add_r1_r1_r4,
 												 		  others => word_vector_init));	
 														   
-  	constant cache_row_instruction_t7 : cache_row_type := (valid => '1',
+  	constant cache_row_instruction_t7 : cacheRowType := (valid => '1',
 												 tag => (others => '0'),   
 												 data => (0 => beq_r1_r2_25,
 												 		  1 => add_r3_r4_r5,
@@ -140,7 +140,7 @@ architecture CacheI_arch of CacheI is
 														   														   
 
 	--- definicao do cache												 
-    signal cache: cache_type := (64 => 	cache_row_instruction,
+    signal cache: cacheType := (64 => 	cache_row_instruction,
 								 68 => 	cache_row_instruction2,
 								 72 =>  cache_row_instruction_nop2,
 								 128 => cache_row_instruction_nop, 
@@ -153,43 +153,43 @@ architecture CacheI_arch of CacheI is
 								 others => cache_row_init);
 	
 	--- Demais sinais internos
-	signal mem_block_addr: natural;
+	signal memBlockAddr: natural;
 	signal index: natural;
-	signal word_offset: natural;
-	signal tag: std_logic_vector(1 downto 0);
+	signal wordOffset: natural;
+	signal tag: bit_vector(1 downto 0);
 	
 		
 begin 
 	-- obtem campos do cache a partir do endereco de entrada
-	mem_block_addr <= to_integer(unsigned(cpu_adrr(15 downto 6)));
-	index <= mem_block_addr mod number_of_blocks;
-	tag <= cpu_adrr(15 downto 14);
-	word_offset <= to_integer(unsigned(cpu_adrr(5 downto 2)));
+	memBlockAddr <= to_integer(unsigned(cpuAdrr(15 downto 6)));
+	index        <= memBlockAddr mod numberOfBlocks;
+	tag          <= cpuAdrr(15 downto 14);
+	wordOffset   <= to_integer(unsigned(cpuAdrr(5 downto 2)));
 		
 							
     --  saidas
 	hit <= '1' when cache(index).valid = '1' and cache(index).tag = tag else '0';
-	data_out <=	cache(index).data(word_offset);
-	mem_addr <= cpu_adrr;
+	dataOut <=	cache(index).data(wordOffset);
+	memAddr <= cpuAdrr;
 	
 	-- atualizacao do cache de acordo com os sinais de controle
-	process(update_info, write_options)
+	process(updateInfo, writeOptions)
 	begin
-		if (update_info'event or write_options'event) then
+		if (updateInfo'event or writeOptions'event) then
 			
 			-- atualiza informacoes do cache
-			if (update_info'event and update_info = '1') then
+			if (updateInfo'event and updateInfo = '1') then
 				cache(index).tag <= tag;
 				cache(index).valid <= '1';
 			end if;
 			
-			-- write_options 0 -> mantem valor do cache inalterado
-			-- write_options 1 -> usa o valor do mem (ocorreu miss)
-			if (write_options'event and write_options = '1') then
-				cache(index).data <= mem_bloco_data;
+			-- writeOptions 0 -> mantem valor do cache inalterado
+			-- writeOptions 1 -> usa o valor do mem (ocorreu miss)
+			if (writeOptions'event and writeOptions = '1') then
+				cache(index).data <= memBlocoData;
 			end if;
 			
 		end if;
 	end process;
 
-end architecture CacheI_arch;
+end architecture CacheIArch;
