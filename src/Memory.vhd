@@ -18,26 +18,25 @@ use pipeline.types.all;
 
 entity Memory is
     generic (
-        access_time: in time := 0 ns
+        accessTime: in time := 0 ns
     );
     port (
 		
 		-- I/O relacionados cache de Instrucoes
-		ci_enable:     in   bit := '0';
-		ci_mem_rw:     in   bit; --- '1' write e '0' read
-		ci_addr:       in   bit_vector(15 downto 0);
-		ci_data_block: out  word_vector_type(15 downto 0) := (others => word_vector_init);
-		ci_mem_ready:  out  bit := '0'; 
+		ciEnable:     in   bit := '0';
+		ciMemRw:     in   bit; --- '1' write e '0' read
+		ciAddr:       in   bit_vector(15 downto 0);
+		ciDataBlock: out  wordVectorType(15 downto 0) := (others => word_vector_init);
+		ciMemReady:  out  bit := '0'; 
 		
 		
 		-- I/O relacionados cache de dados
-		cd_clock:     in  bit;
-		cd_enable:    in  bit;
-		cd_mem_rw:    in  bit; --- '1' write e '0' read
-		cd_addr:      in  bit_vector(15 downto 0);
-		cd_data_in:   in  word_vector_type(15 downto 0);
-		cd_data_out:  out word_vector_type(15 downto 0) := (others => word_vector_init);
-		cd_mem_ready: out bit := '0' 
+		cdEnable:    in  bit;
+		cdMemRw:    in  bit; --- '1' write e '0' read
+		cdAddr:      in  bit_vector(15 downto 0);
+		cdDataIn:   in  wordVectorType(15 downto 0);
+		cdDataOut:  out wordVectorType(15 downto 0) := (others => word_vector_init);
+		cdMemReady: out bit := '0' 
 		
         
     );
@@ -45,58 +44,58 @@ end entity Memory;
 
 architecture Memory_arch of Memory is	 	  
 							  
-	constant mem_size: positive := 2**16; -- 64KBytes = 16384 * 4 bytes (16384 words de 32bits)
-	constant words_per_block: positive := 16;
-	constant block_size: positive := words_per_block * 4; --- 16 * 4 = 64Bytes
-    constant number_of_blocks: positive := mem_size / block_size; -- 1024 blocos
+	constant memSize: positive := 2**16; -- 64KBytes = 16384 * 4 bytes (16384 words de 32bits)
+	constant wordsPerBlock: positive := 16;
+	constant blockSize: positive := wordsPerBlock * 4; --- 16 * 4 = 64Bytes
+    constant numberOfBlocks: positive := memSize / blockSize; -- 1024 blocos
 		
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
-	type mem_row_type is record
-        data:  word_vector_type(words_per_block - 1 downto 0);
-    end record mem_row_type;
+	type memRowType is record
+        data:  wordVectorType(wordsPerBlock - 1 downto 0);
+    end record memRowType;
 
-	type mem_type is array (number_of_blocks - 1 downto 0) of mem_row_type;
+	type memType is array (numberOfBlocks - 1 downto 0) of memRowType;
 	
 	--- leitura do arquivo memory.dat
 
-	impure function readFile(file_name : in string) return mem_type is
-		file     file_f  : text open read_mode is file_name;
-		variable line_l    : line;
-		variable temp_word  : bit_vector(31 downto 0);
-		variable temp_mem : mem_type;
+	impure function readFile(fileName : in string) return memType is
+		file     F  : text open read_mode is fileName;
+		variable L    : line;
+		variable tempWord  : wordType(31 downto 0);
+		variable tempMem : memType;
 		begin
-			for bloc in 0 to number_of_blocks - 1 loop
-				for offset in 0 to words_per_block - 1 loop
-					readline(file_f, line_l);
-					read(line_l, temp_word);
-					temp_mem(bloc).data(offset) := temp_word;
+			for bloc in 0 to numberOfBlocks - 1 loop
+				for offset in 0 to wordsPerBlock - 1 loop
+					readline(F, L);
+					read(L, tempWord);
+					tempMem(bloc).data(offset) := tempWord;
 				end loop;
 			end loop;
-			file_close(file_f);
-			return temp_mem;
+			file_close(F);
+			return tempMem;
 		end;
 		
 	--- inicializa memoria
-	signal memory : mem_type := readFile("memory.dat");
+	signal memory : memType := readFile("memory.dat");
 
 	--- Demais sinais internos
-	signal ci_block_addr: natural;
-	signal ci_index: natural;
-	signal cd_block_addr: natural;
-	signal cd_index: natural;
+	signal ciBlockAddr: natural;
+	signal ciIndex: natural;
+	signal cdBlockAddr: natural;
+	signal cdIndex: natural;
 	signal enable: bit;
 	
 begin 
 	
 	-- obtem index a partir do endereço de entrada
-	ci_block_addr <= to_integer(unsigned(ci_addr(15 downto 6)));
-	ci_index <= ci_block_addr mod number_of_blocks;	
+	ciBlockAddr <= to_integer(unsigned(ciAddr(15 downto 6)));
+	ciIndex <= ciBlockAddr mod numberOfBlocks;	
 	
-	cd_block_addr <= to_integer(unsigned(cd_addr(15 downto 6)));
-	cd_index <= cd_block_addr mod number_of_blocks;
+	cdBlockAddr <= to_integer(unsigned(cdAddr(15 downto 6)));
+	cdIndex <= cdBlockAddr mod numberOfBlocks;
 	
 	-- enable geral
-	enable <= ci_enable or cd_enable;
+	enable <= ciEnable or cdEnable;
 
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(enable)				 
@@ -104,21 +103,21 @@ begin
 		if (enable'event) then
 			
 			-- Memory Read Cache Instrucoes
-			if (ci_enable = '1' and ci_mem_rw = '0') then
-				ci_data_block <=  memory(ci_index).data after access_time;
-				ci_mem_ready  <=  '1' after access_time;
+			if (ciEnable = '1' and ciMemRw = '0') then
+				ciDataBlock <=  memory(ciIndex).data after accessTime;
+				ciMemReady  <=  '1' after accessTime;
 			end if;
 			
 			-- Memory Read Cache Dados
-			if (cd_enable = '1' and cd_mem_rw = '0') then
-				cd_data_out   <=  memory(cd_index).data after access_time;
-				cd_mem_ready  <=  '1' after access_time;
+			if (cdEnable = '1' and cdMemRw = '0') then
+				cdDataOut   <=  memory(cdIndex).data after accessTime;
+				cdMemReady  <=  '1' after accessTime;
 			end if;
 			
 			-- Memory Write Cache Dados
-			if (cd_enable = '1' and cd_mem_rw = '1') then
-				memory(cd_index).data <= cd_data_in after access_time;  
-				cd_mem_ready  <= '1' after access_time;			
+			if (cdEnable = '1' and cdMemRw = '1') then
+				memory(cdIndex).data <= cdDataIn after accessTime;  
+				cdMemReady  <= '1' after accessTime;			
 			end if;
 			
 		end if;
@@ -127,19 +126,19 @@ begin
 	--- process para escrita no arquivo
 	
 	process(memory)
-	file     file_f  : text open write_mode is "memory.dat";
-	variable line_l    : line;
-	variable temp_word  : bit_vector(31 downto 0);
+	file     F  : text open write_mode is "memory.dat";
+	variable L    : line;
+	variable tempWord  : wordType(31 downto 0);
 	begin
 		if (memory'event) then
-			for bloc in 0 to number_of_blocks - 1 loop
-				for offset in 0 to words_per_block - 1 loop
-					temp_word := memory(bloc).data(offset);
-					write(line_l, temp_word);
-					writeline(file_f, line_l);
+			for bloc in 0 to numberOfBlocks - 1 loop
+				for offset in 0 to wordsPerBlock - 1 loop
+					tempWord := memory(bloc).data(offset);
+					write(L, tempWord);
+					writeline(F, L);
 				end loop;
 			end loop;
-			file_close(file_f);
+			file_close(F);
 		end if;
 	end process;
 
