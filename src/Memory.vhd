@@ -18,7 +18,7 @@ use pipeline.types.all;
 
 entity Memory is
     generic (
-        accessTime: in time := 0 ns
+        accessTime: in time := 40 ns
     );
     port (
 		
