@@ -18,7 +18,7 @@ use pipeline.types.all;
 
 entity Memory is
     generic (
-        access_time: in time := 40 ns
+        access_time: in time := 0 ns
     );
     port (
 		
@@ -57,7 +57,7 @@ architecture Memory_arch of Memory is
 
 	type mem_type is array (number_of_blocks - 1 downto 0) of mem_row_type;
 	
-	--- funcoes de acesso a arquivo
+	--- leitura do arquivo memory.dat
 
 	impure function readFile(file_name : in string) return mem_type is
 		file     file_f  : text open read_mode is file_name;
@@ -71,10 +71,11 @@ architecture Memory_arch of Memory is
 					read(line_l, temp_word);
 					temp_mem(bloc).data(offset) := temp_word;
 				end loop;
-		  end loop;
-		  return temp_mem;
+			end loop;
+			file_close(file_f);
+			return temp_mem;
 		end;
-	
+		
 	--- inicializa memoria
 	signal memory : mem_type := readFile("memory.dat");
 
@@ -84,7 +85,6 @@ architecture Memory_arch of Memory is
 	signal cd_block_addr: natural;
 	signal cd_index: natural;
 	signal enable: bit;
-	
 	
 begin 
 	
@@ -97,10 +97,9 @@ begin
 	
 	-- enable geral
 	enable <= ci_enable or cd_enable;
-	
-	
+
 	-- atualizacao do cache de acordo com os sinais de controle
-	process(enable)
+	process(enable)				 
 	begin
 		if (enable'event) then
 			
@@ -111,17 +110,36 @@ begin
 			end if;
 			
 			-- Memory Read Cache Dados
-			if (cd_enable = '1' and ci_mem_rw = '0') then
-				cd_data_out   <=  memory(ci_index).data after access_time;
+			if (cd_enable = '1' and cd_mem_rw = '0') then
+				cd_data_out   <=  memory(cd_index).data after access_time;
 				cd_mem_ready  <=  '1' after access_time;
 			end if;
 			
 			-- Memory Write Cache Dados
-			if (cd_enable = '1' and ci_mem_rw = '1') then
-				memory(ci_index).data <= cd_data_in after access_time;  
-				ci_mem_ready  <=  '1' after access_time;
+			if (cd_enable = '1' and cd_mem_rw = '1') then
+				memory(cd_index).data <= cd_data_in after access_time;  
+				cd_mem_ready  <= '1' after access_time;			
 			end if;
 			
+		end if;
+	end process;
+	
+	--- process para escrita no arquivo
+	
+	process(memory)
+	file     file_f  : text open write_mode is "memory.dat";
+	variable line_l    : line;
+	variable temp_word  : bit_vector(31 downto 0);
+	begin
+		if (memory'event) then
+			for bloc in 0 to number_of_blocks - 1 loop
+				for offset in 0 to words_per_block - 1 loop
+					temp_word := memory(bloc).data(offset);
+					write(line_l, temp_word);
+					writeline(file_f, line_l);
+				end loop;
+			end loop;
+			file_close(file_f);
 		end if;
 	end process;
 
