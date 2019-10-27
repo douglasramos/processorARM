@@ -61,7 +61,7 @@ architecture Memory_arch of Memory is
 	impure function readFile(fileName : in string) return memType is
 		file     F  : text open read_mode is fileName;
 		variable L    : line;
-		variable tempWord  : wordType(31 downto 0);
+		variable tempWord  : wordType;
 		variable tempMem : memType;
 		begin
 			for bloc in 0 to numberOfBlocks - 1 loop
@@ -128,7 +128,7 @@ begin
 	process(memory)
 	file     F  : text open write_mode is "memory.dat";
 	variable L    : line;
-	variable tempWord  : wordType(31 downto 0);
+	variable tempWord  : wordType;
 	begin
 		if (memory'event) then
 			for bloc in 0 to numberOfBlocks - 1 loop
