@@ -28,10 +28,10 @@ entity CacheI is
 		
 		-- I/O relacionados ao IF stage
         cpuAdrr: in  bit_vector(15 downto 0);
-        dataOut: out wordType;	
+        dataOut: out word_type;	
 
         -- I/O relacionados a Memoria princial
-        memBlocoData: in  wordVectorType(15 downto 0);
+        memBlocoData: in  word_vector_type(15 downto 0);
 		memAddr:      out bit_vector(15 downto 0) := (others => '0')
 		
 		   
@@ -49,7 +49,7 @@ architecture CacheIArch of CacheI is
 	    type cacheRowType is record
         valid: bit;
         tag:   bit_vector(1 downto 0);
-        data:  wordVectorType(palavrasPorBloco - 1 downto 0);
+        data:  word_vector_type(palavrasPorBloco - 1 downto 0);
     end record cacheRowType;
 
     type cacheType is array (numberOfBlocks - 1 downto 0) of cacheRowType;

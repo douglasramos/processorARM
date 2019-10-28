@@ -30,13 +30,13 @@ entity cacheDPath is
 
 		-- I/O relacionados ao MEM stage
         cpuAdrr:        in  bit_vector(15 downto 0);
-		dataIn :        in  wordType;
-		dataOut:        out wordType;
+		dataIn :        in  word_type;
+		dataOut:        out word_type;
 
 		-- I/O relacionados a Memoria princial
-        memBlockIn:    in  wordVectorType(15 downto 0);
+        memBlockIn:    in  word_vector_type(15 downto 0);
 		memAddr:       out bit_vector(15 downto 0) := (others => '0');
-		memBlockOut:   out wordVectorType(15 downto 0) := (others => word_vector_init)
+		memBlockOut:   out word_vector_type(15 downto 0) := (others => word_vector_init)
 
     );
 end entity cacheDPath;
@@ -56,7 +56,7 @@ architecture cacheDPath_arch of cacheDPath is
          valid: bit;
 		 dirty: bit;
          tag:   bit_vector(2 downto 0);
-         data:  wordVectorType(words_per_block - 1 downto 0);
+         data:  word_vector_type(words_per_block - 1 downto 0);
     end record block_row_type;
 
 	type set_type is array (blocks_per_set - 1 downto 0) of block_row_type;
