@@ -15,7 +15,7 @@ library pipeline;
 use pipeline.types.all;
 
 
-entity CacheD is
+entity cacheDPath is
     generic (
         accessTime: in time := 5 ns
     );
@@ -39,9 +39,9 @@ entity CacheD is
 		memBlockOut:   out wordVectorType(15 downto 0) := (others => word_vector_init)
 
     );
-end entity CacheD;
+end entity cacheDPath;
 
-architecture CacheD_arch of CacheD is
+architecture cacheDPath_arch of cacheDPath is
 
 	constant cacheSize: positive := 2**14; -- 16KBytes = 4096 * 4 bytes (4096 words de 32bits)
 	constant words_per_block: positive := 16;
@@ -70,26 +70,26 @@ architecture CacheD_arch of CacheD is
 										           dirty =>  '0',
 										           tag =>   (others => '0'),
 											       data =>  (0 => word_vector_value,
-												             others => word_vector_init));		  
-												   
+												             others => word_vector_init));
+
 	constant block_with_value2 : block_row_type := (valid => '1',
 										            dirty => '0',
 										            tag =>   (others => '0'),
 											        data =>  (0 => word_vector_value2 ,
 												   			 others => word_vector_init));
-												   
+
    	constant block_with_value3 : block_row_type := (valid => '1',
 										            dirty => '0',
 										            tag =>   (others => '0'),
 											        data =>  (0 => word_vector_value3 ,
 												   			 others => word_vector_init));
-												   
+
     constant block_with_value4 : block_row_type := (valid => '1',
 										            dirty => '0',
 										            tag =>   (others => '0'),
 											        data =>  (0 => word_vector_value4 ,
-													         others => word_vector_init));											
-												   
+													         others => word_vector_init));
+
     --- Cache eh formado por um array de conjuntos
 	type set_vector_type is record
 		 set: set_type;
@@ -179,4 +179,4 @@ begin
 		end if;
 	end process;
 
-end architecture CacheD_arch;
+end architecture cacheDPath_arch;
