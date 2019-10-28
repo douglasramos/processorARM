@@ -1,10 +1,8 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores I
--- PicoMIPS
--- Author: Douglas Ramos
--- Co-Authors: Pedro Bitro, Rafael Higa
+-- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- ARM
 --
 -- Description:
---     Define tipos comuns utilizados no proejto
+--     Define tipos comuns utilizados no projeto
 
 library ieee;
 use ieee.numeric_bit.all;

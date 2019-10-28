@@ -1,10 +1,8 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores I
--- PicoMIPS
--- Author: Douglas Ramos
--- Co-Authors: Pedro Brito, Rafael Higa
+-- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- ARM
 --
 -- Description:
---     Cache de Instrucoes
+--     Cache de instruções (Fluxo de dados)
 
 library ieee;
 use ieee.numeric_bit.all;

@@ -1,7 +1,5 @@
 -- PCS3412 - Organizacao e Arquitetura de Computadores II
--- PicoMIPS
--- Author: Douglas Ramos
--- Co-Authors: Rafael Higa, Igor Ortega, Henrique
+-- ARM
 --
 -- Description:
 --     Cache de dados (Fluxo de dados)
