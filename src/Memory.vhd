@@ -1,19 +1,16 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores I
+-- PCS3412 - Organizacao e Arquitetura de Computadores II
 -- PicoMIPS
--- Author: Douglas Ramos
--- Co-Authors: Pedro Brito, Rafael Higa
 --
 -- Description:
---     Memoria Principal
+--     Memoria Principal (RAM)
 
-library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_bit.all;
+library ieee;
+use ieee.numeric_bit.all;
 use std.textio.all;
 
 -- importa os types do projeto
-library pipeline;
-use pipeline.types.all;
+library arm;
+use arm.types.all;
 
 
 entity Memory is
@@ -26,7 +23,7 @@ entity Memory is
 		ciEnable:     in   bit := '0';
 		ciMemRw:     in   bit; --- '1' write e '0' read
 		ciAddr:       in   bit_vector(15 downto 0);
-		ciDataBlock: out  wordVectorType(15 downto 0) := (others => word_vector_init);
+		ciDataBlock: out  word_vector_type(15 downto 0) := (others => word_vector_init);
 		ciMemReady:  out  bit := '0'; 
 		
 		
@@ -34,8 +31,8 @@ entity Memory is
 		cdEnable:    in  bit;
 		cdMemRw:    in  bit; --- '1' write e '0' read
 		cdAddr:      in  bit_vector(15 downto 0);
-		cdDataIn:   in  wordVectorType(15 downto 0);
-		cdDataOut:  out wordVectorType(15 downto 0) := (others => word_vector_init);
+		cdDataIn:   in  word_vector_type(15 downto 0);
+		cdDataOut:  out word_vector_type(15 downto 0) := (others => word_vector_init);
 		cdMemReady: out bit := '0' 
 		
         
@@ -51,7 +48,7 @@ architecture Memory_arch of Memory is
 		
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
 	type memRowType is record
-        data:  wordVectorType(wordsPerBlock - 1 downto 0);
+        data:  word_vector_type(wordsPerBlock - 1 downto 0);
     end record memRowType;
 
 	type memType is array (numberOfBlocks - 1 downto 0) of memRowType;
@@ -61,7 +58,7 @@ architecture Memory_arch of Memory is
 	impure function readFile(fileName : in string) return memType is
 		file     F  : text open read_mode is fileName;
 		variable L    : line;
-		variable tempWord  : wordType;
+		variable tempWord  : word_type;
 		variable tempMem : memType;
 		begin
 			for bloc in 0 to numberOfBlocks - 1 loop
@@ -87,7 +84,7 @@ architecture Memory_arch of Memory is
 	
 begin 
 	
-	-- obtem index a partir do endereço de entrada
+	-- obtem index a partir do endereco de entrada
 	ciBlockAddr <= to_integer(unsigned(ciAddr(15 downto 6)));
 	ciIndex <= ciBlockAddr mod numberOfBlocks;	
 	
@@ -128,7 +125,7 @@ begin
 	process(memory)
 	file     F  : text open write_mode is "memory.dat";
 	variable L    : line;
-	variable tempWord  : wordType;
+	variable tempWord  : word_type;
 	begin
 		if (memory'event) then
 			for bloc in 0 to numberOfBlocks - 1 loop
