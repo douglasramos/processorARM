@@ -11,8 +11,8 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 -- importa os types do projeto
-library pipeline;
-use pipeline.types.all;
+library arm;
+use arm.types.all;
 
 
 entity cacheDPath is
