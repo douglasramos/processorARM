@@ -6,8 +6,8 @@
 -- Description:
 --     Define tipos comuns utilizados no proejto
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.numeric_bit.all;
 
 package types is
 

@@ -6,13 +6,12 @@
 -- Description:
 --     Controle do Cache de Instrucoes
 
-library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all; 
+library ieee;
+use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library pipeline;
-use pipeline.types.all;
+library arm;
+use arm.types.all;
 
 
 entity ControlCacheI is
@@ -24,7 +23,7 @@ entity ControlCacheI is
 		-- I/O relacionados ao stage IF
 		clk:    in bit;
         stall:  out bit := '0';
-		pc:     in wordType;
+		pc:     in word_type;
 		
 		-- I/O relacionados ao cache
 		hitSignal:      in  bit;

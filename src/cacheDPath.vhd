@@ -1,14 +1,13 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores I
+-- PCS3412 - Organizacao e Arquitetura de Computadores II
 -- PicoMIPS
 -- Author: Douglas Ramos
--- Co-Authors: Pedro Brito, Rafael Higa
+-- Co-Authors: Rafael Higa, Igor Ortega, Henrique
 --
 -- Description:
---     Cache de dados
+--     Cache de dados (Fluxo de dados)
 
-library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all;
+library ieee;
+use ieee.numeric_bit.all;
 
 -- importa os types do projeto
 library arm;
@@ -173,7 +172,7 @@ begin
 
 			-- Escreve na memoria
 			if (memWrite'event and memWrite = '1') then
-				memBlockOut <= cache(index).set(set_index).data after accessTime;
+				--memBlockOut <= cache(index).set(set_index).data after accessTime;
 			end if;
 
 		end if;

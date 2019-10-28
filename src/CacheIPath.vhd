@@ -6,9 +6,8 @@
 -- Description:
 --     Cache de Instrucoes
 
-library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.numeric_std.all; 
+library ieee;
+use ieee.numeric_bit.all;
 
 -- importa os types do projeto
 library arm;
@@ -161,7 +160,7 @@ architecture CacheIArch of CacheI is
 		
 begin 
 	-- obtem campos do cache a partir do endereco de entrada
-	memBlockAddr <= to_integer(unsigned(cpuAdrr(15 downto 6)));
+	memBlockAddr <= to_integer(signed(cpuAdrr(15 downto 6)));
 	index        <= memBlockAddr mod numberOfBlocks;
 	tag          <= cpuAdrr(15 downto 14);
 	wordOffset   <= to_integer(unsigned(cpuAdrr(5 downto 2)));
