@@ -1,8 +1,8 @@
 -- PCS3412 - Organizacao e Arquitetura de Computadores II
--- ARM
+-- ARMA
 --
 -- Description:
---     Cache de instruções (Fluxo de dados)
+--     Cache de instruï¿½ï¿½es (Fluxo de dados)
 
 library ieee;
 use ieee.numeric_bit.all;

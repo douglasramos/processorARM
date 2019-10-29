@@ -65,9 +65,10 @@ unidades_controle : controlModules port map (clk, reset, instruction31to21, reg2
 
 fluxo_de_dados 	: datapath port map(clk, reset, reg2loc, uncondBranch, branch, memRead, memToReg, aluCtl, memWrite, aluSrc, regWrite, instruction31to21, zero, dataOut, IFStagePC);
 
---OBS: Notar que as portas lógicas em azul no desenho do fluxo de dados tiveram que ser implementadas no fluxo de dados
+--OBS: Notar que as portas lógicas em azul no desenho do fluxo de dados (MONOCICLO) tiveram que ser implementadas no fluxo de dados
 --e não na UC ou aqui nesse arquivo top level, como orientado, caso contrário, deveria haver um sinal SEL para o multiplexador 3 (vide datapath.vhd)
 --como "in bit" na interface da entity do fluxo de dados. Para não comprometer essa definição, dada no enunciado do problema do monociclo
---proposto, optou-se por implementar as portas no fluxo de dados mesmo!
+--proposto, optou-se por implementar as portas no fluxo de dados mesmo!			
+	--No multiciclo pipeline, foi decidido não fazer modificações em relações a esse aspecto, somente executar adaptações necessárias para a inclusão dos buffers.
 
 end toplevel;
