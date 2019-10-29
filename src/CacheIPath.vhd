@@ -1,5 +1,5 @@
 -- PCS3412 - Organizacao e Arquitetura de Computadores II
--- ARMA
+-- ARMAS
 --
 -- Description:
 --     Cache de instru��es (Fluxo de dados)
