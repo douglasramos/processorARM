@@ -2,7 +2,8 @@
 -- PicoMIPS
 --
 -- Description:
---     Memoria Principal (RAM)
+--     Memoria Principal (RAM) - Level 2
+--			Interface direta com CacheI e CacheD
 
 library ieee;
 use ieee.numeric_bit.all;
@@ -13,7 +14,7 @@ library arm;
 use arm.types.all;
 
 
-entity Memory is
+entity MemoryL2 is
     generic (
         accessTime: in time := 40 ns
     );
@@ -22,29 +23,29 @@ entity Memory is
 		-- I/O relacionados cache de Instrucoes
 		ciEnable:     in   bit := '0';
 		ciMemRw:     in   bit; --- '1' write e '0' read
-		ciAddr:       in   bit_vector(15 downto 0);
-		ciDataBlock: out  word_vector_type(15 downto 0) := (others => word_vector_init);
+		ciAddr:       in   bit_vector(31 downto 0);
+		ciDataBlock: out  word_vector_type(31 downto 0) := (others => word_vector_init);
 		ciMemReady:  out  bit := '0'; 
 		
 		
 		-- I/O relacionados cache de dados
 		cdEnable:    in  bit;
 		cdMemRw:    in  bit; --- '1' write e '0' read
-		cdAddr:      in  bit_vector(15 downto 0);
-		cdDataIn:   in  word_vector_type(15 downto 0);
-		cdDataOut:  out word_vector_type(15 downto 0) := (others => word_vector_init);
+		cdAddr:      in  bit_vector(31 downto 0);
+		cdDataIn:   in  word_vector_type(31 downto 0);
+		cdDataOut:  out word_vector_type(31 downto 0) := (others => word_vector_init);
 		cdMemReady: out bit := '0' 
 		
         
     );
-end entity Memory;
+end entity MemoryL2;
 
-architecture Memory_arch of Memory is	 	  
+architecture MemoryL2_arch of MemoryL2 is	 	  
 							  
-	constant memSize: positive := 2**16; -- 64KBytes = 16384 * 4 bytes (16384 words de 32bits)
-	constant wordsPerBlock: positive := 16;
-	constant blockSize: positive := wordsPerBlock * 4; --- 16 * 4 = 64Bytes
-    constant numberOfBlocks: positive := memSize / blockSize; -- 1024 blocos
+	constant memSize: positive := 2**18; -- 256KBytes = 65536 * 4 bytes (65536 words de 32bits)
+	constant wordsPerBlock: positive := 32;
+	constant blockSize: positive := wordsPerBlock * 4; --- 32 * 4 = 128Bytes
+    constant numberOfBlocks: positive := memSize / blockSize; -- 2048 blocos
 		
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
 	type memRowType is record
@@ -85,10 +86,10 @@ architecture Memory_arch of Memory is
 begin 
 	
 	-- obtem index a partir do endereco de entrada
-	ciBlockAddr <= to_integer(unsigned(ciAddr(15 downto 6)));
+	ciBlockAddr <= to_integer(unsigned(ciAddr(17 downto 7)));
 	ciIndex <= ciBlockAddr mod numberOfBlocks;	
 	
-	cdBlockAddr <= to_integer(unsigned(cdAddr(15 downto 6)));
+	cdBlockAddr <= to_integer(unsigned(cdAddr(17 downto 7)));
 	cdIndex <= cdBlockAddr mod numberOfBlocks;
 	
 	-- enable geral
@@ -139,4 +140,4 @@ begin
 		end if;
 	end process;
 
-end architecture Memory_arch;
+end architecture MemoryL2_arch;
