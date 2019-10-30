@@ -1,5 +1,5 @@
 -- PCS3412 - Organizacao e Arquitetura de Computadores II
--- Q
+-- ARM
 --
 -- Description:
 --     Cache de instru��es (Fluxo de dados)
@@ -24,7 +24,7 @@ entity CacheI is
 		hit:             out bit := '0';
 		
 		-- I/O relacionados ao IF stage
-        cpuAdrr: in  bit_vector(15 downto 0);
+        cpuAdrr: in  bit_vector(63 downto 0);
         dataOut: out word_type;	
 
         -- I/O relacionados a Memoria princial
@@ -137,16 +137,16 @@ architecture CacheIArch of CacheI is
 														   														   
 
 	--- definicao do cache												 
-    signal cache: cacheType := (64 => 	cache_row_instruction,
-								 68 => 	cache_row_instruction2,
-								 72 =>  cache_row_instruction_nop2,
-								 128 => cache_row_instruction_nop, 
-								 148 => cache_row_instruction_t1,
-								 149 => cache_row_instruction_t2,
-								 150 => cache_row_instruction_t3,
-								 151 => cache_row_instruction_t5,
-								 152 => cache_row_instruction_t6,
-								 153 => cache_row_instruction_t7,
+	signal cache: cacheType := (64 => 	cache_row_instruction,
+								68 => 	cache_row_instruction2,
+								72 =>  cache_row_instruction_nop2,
+								128 => cache_row_instruction_nop, 
+								148 => cache_row_instruction_t1,
+								149 => cache_row_instruction_t2,
+								150 => cache_row_instruction_t3,
+								151 => cache_row_instruction_t5,
+								152 => cache_row_instruction_t6,
+								153 => cache_row_instruction_t7,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 								 others => cache_row_init);
 	
 	--- Demais sinais internos
