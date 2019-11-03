@@ -8,8 +8,8 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 
 entity cacheDPath is
@@ -19,30 +19,34 @@ entity cacheDPath is
     port (
 
 		-- I/O relacionados ao controle
-		writeOptions:   in  bit_vector(1 downto 0);
-		memWrite:       in  bit;
-		updateInfo:     in  bit;
-		hit:            out bit := '0';
-		dirtyBit:       out bit := '0';
-
+		writeOptions		 : in  bit_vector(1 downto 0);
+		memWrite			 : in  bit;
+		updateInfo			 : in  bit;
+		hit					 : out bit := '0';
+		dirtyBit			 : out bit := '0';
 		-- I/O relacionados ao MEM stage
-        cpuAdrr:        in  bit_vector(15 downto 0);
-		dataIn :        in  word_type;
-		dataOut:        out word_type;
-
-		-- I/O relacionados a Memoria princial
-        memBlockIn:    in  word_vector_type(15 downto 0);
-		memAddr:       out bit_vector(15 downto 0) := (others => '0');
-		memBlockOut:   out word_vector_type(15 downto 0) := (others => word_vector_init)
-
+        cpuAddr				 : in  bit_vector(63 downto 0);
+		dataIn 				 : in  word_type;
+		dataOut				 : out word_type;
+		-- I/O relacionados ao L2 ou ao VB
+        memBlocoData		 : in  word_vector_type(31 downto 0);    --na verdade, esse bloco novo pode ser tanto vindo do L2 como do victim buffer!
+		L2BlockOut			 : out word_vector_type(31 downto 0) := (others => word_vector_init);
+		readAddressDataTag 	 : out bit_vector(49 downto 0);
+		readAddressDataIndex : out bit_vector(6 downto 0);
+		-- I/O relacionados ao Victim Buffer
+		evictedBlockData     : out word_vector_type(31 downto 0);  
+		evictedBlockTag	     : out bit_vector(49 downto 0);		 
+		evictedBlockIndex    : out bit_vector(6 downto 0)
+		--isDequeueAddr_Data   : out bit 	  --vai indicar se tem bloco despejado. Se o set não estava cheio, não precisa despejar um bloco. Apesar de que ainda é interessante dar um fetch no victim buffer!
+		
     );
 end entity cacheDPath;
 
 architecture cacheDPath_arch of cacheDPath is
 
-	constant cacheSize: positive := 2**14; -- 16KBytes = 4096 * 4 bytes (4096 words de 32bits)
-	constant words_per_block: positive := 16;
-	constant blocoSize: positive := words_per_block * 4; --- 16 * 4 = 64Bytes
+	constant cacheSize: positive := 2**15; -- 32KBytes = 8192 * 4 bytes (4096 words de 32bits)
+	constant words_per_block: positive := 32;
+	constant blocoSize: positive := words_per_block * 4; --- 32 * 4 = 128Bytes
     constant numberOfBlocks: positive := cacheSize / blocoSize; -- 256 blocos
 	constant blocks_per_set: positive := 2; -- Associativo por conjunto de 2 blocos
 	constant number_of_sets: positive := numberOfBlocks / blocks_per_set; --  128 conjuntos
@@ -52,7 +56,7 @@ architecture cacheDPath_arch of cacheDPath is
 	type block_row_type is record
          valid: bit;
 		 dirty: bit;
-         tag:   bit_vector(2 downto 0);
+         tag:   bit_vector(49 downto 0);
          data:  word_vector_type(words_per_block - 1 downto 0);
     end record block_row_type;
 
@@ -63,30 +67,7 @@ architecture cacheDPath_arch of cacheDPath is
 										         tag =>   (others => '0'),
 											     data =>  (others => word_vector_init));
 
-	constant block_with_value : block_row_type := (valid => '1',
-										           dirty =>  '0',
-										           tag =>   (others => '0'),
-											       data =>  (0 => word_vector_value,
-												             others => word_vector_init));
-
-	constant block_with_value2 : block_row_type := (valid => '1',
-										            dirty => '0',
-										            tag =>   (others => '0'),
-											        data =>  (0 => word_vector_value2 ,
-												   			 others => word_vector_init));
-
-   	constant block_with_value3 : block_row_type := (valid => '1',
-										            dirty => '0',
-										            tag =>   (others => '0'),
-											        data =>  (0 => word_vector_value3 ,
-												   			 others => word_vector_init));
-
-    constant block_with_value4 : block_row_type := (valid => '1',
-										            dirty => '0',
-										            tag =>   (others => '0'),
-											        data =>  (0 => word_vector_value4 ,
-													         others => word_vector_init));
-
+	
     --- Cache eh formado por um array de conjuntos
 	type set_vector_type is record
 		 set: set_type;
@@ -96,35 +77,26 @@ architecture cacheDPath_arch of cacheDPath is
 
 	constant cache_set_init : set_vector_type := (set => (others => block_row_init));
 
-	constant cache_set_with_value  : set_vector_type := (set => (0 => block_with_value,  1 => block_row_init));
-	constant cache_set_with_value2 : set_vector_type := (set => (0 => block_with_value2, 1 => block_row_init));
-	constant cache_set_with_value3 : set_vector_type := (set => (0 => block_with_value3, 1 => block_row_init));
-	constant cache_set_with_value4 : set_vector_type := (set => (0 => block_with_value4, 1 => block_row_init));
-
 	--- definicao do cache
-    signal cache: cacheType := (4 => cache_set_with_value,    -- endereï¿½o x100
-								 84 => cache_set_with_value2,   -- endereï¿½o x1500
-								 88 => cache_set_with_value3,   -- endereï¿½o x1600
-								 92 => cache_set_with_value4,   -- endereï¿½o x1700
-								 others => cache_set_init);
+    signal cache: cacheType;
 
 	signal memBlockAddr: natural;
 	signal index: natural;
 	signal wordOffset: natural;
-	signal tag: bit_vector(2 downto 0);
+	signal tag: bit_vector(49 downto 0);
 	signal set_index: natural;
 	signal hitSignal: bit; --- sinal interno utilizado para poder usar o hit na logica do set_index
 
 
 begin
 	-- obtem campos do cache a partir do endereï¿½o de entrada
-	memBlockAddr <= to_integer(unsigned(cpuAdrr(15 downto 6)));
-	index <= memBlockAddr mod number_of_sets;
-	tag <= cpuAdrr(15 downto 13);
-	wordOffset <= to_integer(unsigned(cpuAdrr(5 downto 2)));
+	memBlockAddr <= to_integer(unsigned(cpuAddr(63 downto 7)));
+	index 		 <= memBlockAddr mod number_of_sets;
+	tag 		 <= cpuAddr(63 downto 14);
+	wordOffset 	 <= to_integer(unsigned(cpuAddr(6 downto 2)));
 
 	-- Logica que define o index dentro do conjunto em caso de hit ou nao.
-	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco
+	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco		  -----------------implementar LRU aqui!!!
 	set_index <= 0 when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
 	                    (hitSignal = '0' and cache(index).set(0).valid = '0') else
     			 1 when (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) or
@@ -140,12 +112,15 @@ begin
 
 	dataOut <=	cache(index).set(set_index).data(wordOffset) after accessTime;
 
-	memAddr <= cpuAdrr;
-
 	dirtyBit <= cache(index).set(set_index).dirty;
 
-	memBlockOut <= cache(index).set(set_index).data;
-
+	L2BlockOut <= cache(index).set(set_index).data;
+	
+	evictedBlockData 	 <= cache(index).set(set_index).data; 
+	evictedBlockIndex 	 <= cpuAddr(13 downto 7);   --mesmo que cpuaddr responda a um bloco que está FORA do set, ainda se trata do mesmo index, então não tem problema aqui! Acho...
+	evictedBlockTag   	 <= cache(index).set(set_index).tag;
+	readAddressDataTag 	 <= cpuAddr(63 downto 14);
+	readAddressDataIndex <= cpuAddr(13 downto 7);
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions, memWrite)
 	begin
@@ -161,7 +136,7 @@ begin
 			-- writeOptions 01 -> usa o valor do mem (ocorreu miss)
 			-- writeOptions 10 -> usa o valor do dataIn (cpu write)
 			if (writeOptions = "01") then
-				cache(index).set(set_index).data <= memBlockIn;
+				cache(index).set(set_index).data <= memBlocoData;
 
 			elsif (writeOptions = "10") then
 				cache(index).set(set_index).data(wordOffset) <= dataIn after accessTime;
