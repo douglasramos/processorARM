@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -8,8 +8,8 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 
 entity ControlCacheI is
@@ -17,22 +17,23 @@ entity ControlCacheI is
         accessTime: in time := 5 ns
     );
     port (
-			
 		-- I/O relacionados ao stage IF
-		clk:    in bit;
-        stall:  out bit := '0';
-		pc:     in word_type;
-		
+		clk				   : in  bit;
+        stall			   : out bit := '0';
+		pc				   : in  bit_vector(63 downto 0);
 		-- I/O relacionados ao cache
-		hitSignal:      in  bit;
-		writeOptions:   out bit := '0';
-		updateInfo:     out bit := '0';
+		hitSignal		   : in  bit;
+		writeOptions	   : out bit := '0';
+		updateInfo	   	   : out bit := '0';
+        -- I/O relacionados ao L2
+		L2Ready			   : in  bit;
+		L2RW			   : out bit := '0';  --- '1' write e '0' read
+        L2Enable		   : out bit := '0';
+		-- I/O relacionados ao victim buffer
+		isFull			   : in  bit;
+		dequeue_given_address_inst : in bit;	   
+		VBInstAccess	   : out bit
 		
-        -- I/O relacionados a Memï¿½ria princial
-		memReady:      in  bit;
-		memRW:         out bit := '0';  --- '1' write e '0' read
-        memEnable:     out bit := '0'
-        
     );
 end entity ControlCacheI;
 
@@ -76,7 +77,7 @@ begin
 				--- estado Compare Tag2 
 				--- (segunda comparacao apos MISS)
 				when CTAG2 =>
-					if hitSignal = '1' then 
+					if hitSignal = '1' or dequeue_given_address_inst = '1' then    --dequeue_given_address_inst seria redundante aqui???
 					   state <= HIT;
 
 					else -- Miss
@@ -90,10 +91,11 @@ begin
 					
 				--- estado Miss
 				when MISS =>
-					if memReady = '1' then
+					if L2Ready = '1' or isFull = '0' then
 						state <= MEM;
-                    end if;
-					
+                    else
+						state <= MISS;
+					end if;
 				--- estado Memory Ready
 				when MEM =>
 					state <= CTAG2;			
@@ -107,7 +109,7 @@ begin
 	--- saidas ---
 	
 	-- memRW
-	memRW <= '0'; -- sempre leitra
+	L2RW <= '0'; -- sempre leitra
 	
 	-- stall -- trava pipeline
 	stall <= '1' after accessTime when state = MISS  or 
@@ -121,7 +123,8 @@ begin
 	updateInfo <= '1' when state = MEM else '0';
 	         	   				  
     -- memEnable		
-	memEnable <= '1' when state = MISS else '0';
-		          
+	L2Enable <= '1' when state = MISS else '0';
+	
+	VBInstAccess <= '1' when state = MEM else '0';     --só aqui mesmo ou tem mais???
 
 end architecture ControlCacheIArch;

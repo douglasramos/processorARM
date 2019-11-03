@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organização e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -8,34 +8,31 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+use types.all;
 
 
 entity ControlCacheD is
     generic (
         accessTime: in time := 5 ns
     );
-    port (			  
-			
+    port (			  		
 		-- I/O relacionados ao stage MEM
-		clk:            in bit;
+		clk:            in  bit;
 		clk_pipeline:   in  bit;
         cpu_write:      in  bit;
-		cpu_addr:       in  bit_vector(15 downto 0);
+		cpu_addr:       in  bit_vector(63 downto 0);
 		stall:          out bit := '0';
-		
 		-- I/O relacionados ao cache
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
-		
         -- I/O relacionados a Memoria princial
-		memReady:      in  bit;
-		memRW:         out bit := '0';  --- '1' write e '0' read
-        memEnable:     out bit := '0'
-        
+		L2Ready:      in  bit;
+		L2RW:         out bit := '0';  --- '1' write e '0' read
+        L2Enable:     out bit := '0';
+		dequeue_given_address_data : in bit;
+		VBDataAccess : out bit
     );
 end entity ControlCacheD;
 
@@ -85,9 +82,9 @@ begin
 				
 				--- estado Memory Write
 				when MWRITE =>
-					if memReady = '1' then
+					if L2Ready = '1' then
 						state <= READY;
-					elsif memReady = '0' then
+					elsif L2Ready = '0' then
 						state <= MWRITE;
 					end if;
 				
@@ -95,7 +92,7 @@ begin
 				--- estado Compare Tag2 
 				--- (segunda comparacao apos MISS)
 				when CTAG2 =>
-					if hitSignal = '1' then 
+					if hitSignal = '1' or dequeue_given_address_data = '1' then 
 					   state <= HIT;
 
 					else -- Miss
@@ -109,7 +106,7 @@ begin
 					
 				--- estado Miss
 				when MISS =>
-					if memReady = '1' then
+					if L2Ready = '1' then
 						state <= MREADY;
                     end if;
 					
@@ -140,8 +137,10 @@ begin
 	updateInfo <= '1' when state = MREADY else '0';
 	         	   				  
     -- memory		
-	memEnable <= '1' when state = MISS   else '0';
-	memRW     <= '1' when state = MWRITE else '0';
-	
+	L2Enable <= '1' when state = MISS   else '0';
+	L2RW     <= '1' when state = MWRITE else '0';
+		
+		
+	VBDataAccess <= '1' when state = MREADY else '0';     --só aqui mesmo ou tem mais???
 
 end architecture ControlCacheD_arch;
