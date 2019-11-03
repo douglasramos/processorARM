@@ -131,7 +131,7 @@ isEmptyBuffer <= isEmpty;
 				bufferData(0).index <= blockInIndex;
 				bufferData(0).valid <= '1';
 			end if;
-		end if;
+		end if; 
 	end process;
 	
 end archi;
