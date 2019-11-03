@@ -39,7 +39,7 @@ entity ControlCacheL2 is
 		hitSignal:     in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
-		switchAddr     out bit := '0';
+		addrCacheD     out bit := '0';
 		
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
@@ -52,7 +52,7 @@ end entity ControlCacheL2;
 architecture ControlCacheL2_arch of ControlCacheL2 is	 	  
 							  
 	-- Definicao de estados
-    type states is (INIT, READY, CTAG, WRITE, MWRITE, CTAG2, HIT, MISS, MREADY);
+    type states is (INIT, READY, REQ, ICTAG, ICTAG2, IHIT, IMISS, IMREADY, DCTAG, DCTAG2, DHIT, DMISS, DMREADY);
     signal state: states := INIT; 
 
     -- Sinais internos
@@ -64,11 +64,11 @@ begin
     enable <= ciEnable or cdEnable;
     -- Write signal geral
 
-    process (clk, enable, cdAddr, ciAddr)									  
+    process (clk, enable)									  
 	begin
-		if rising_edge(clk) or cdAddr'event or ciAddr'event then
+		if (rising_edge(clk) or enable'event) then
 			case state is 
-				
+	
 				--- estado inicial
 				when INIT =>
 					state <= READY;	
@@ -76,82 +76,112 @@ begin
 				--- estado Ready
 				when READY =>
                     if enable'event then
-                        state <= CTAG;
+                        state <= REQ;
                     end if;
-					
-				--- estado Compare Tag
-                when CTAG =>
-                    if cdRw = '1' then
-                        if dirtyBit = '1' then
-							state <= MWRITE;	-- precisa colocar dado atual na Memoria primeiro
-						elsif dirtyBit = '0' then
-						 	state <= WRITE; -- pode ja escrever no cache
-						end if;
-                    elsif cdRW = '0' or ciRW = '0' then	  -- Leitura
-						if hitSignal = '1' then 
-					   		state <= HIT;
-
-						else -- Miss
-							state <= MISS;								
-                		end if;
-                	end if;
 				
-				--- estado Write
-				when WRITE =>
-				   state <= READY;
-				
-				--- estado Memory Write
-				when MWRITE =>
-					if memReady = '1' then
-						state <= READY;
-					elsif memReady = '0' then
-						state <= MWRITE;
+				--- estado Requisições
+				when REQ =>
+					if ciEnable = '1' then
+						state <= ICTAG;
+					elsif cdEnable = '1' then
+						state <= DCTAG;
 					end if;
 				
-						
-				--- estado Compare Tag2 
-				--- (segunda comparacao apos MISS)
-				when CTAG2 =>
+				--- compare tag para instruções
+				when ICTAG =>
+					if hitSignal = '1' then
+						state <= IHIT;
+					elsif hitSignal = '0' then
+						state < IMISS;
+					end if;
+				
+				--- estado Hit instrução
+				when IHIT =>
+					if cdEnable=1 then
+						state <= DCTAG;
+					else
+						state <= READY;
+					end if;
+				
+				--- estado Miss Instrução
+				when IMISS =>
+					if memReady = '1' then
+						state <= IMREADY;
+                    end if;
+				
+				--- estado Instrução Memory Ready
+				when IMREADY =>
+					state <= ICTAG2;
+				
+				--- compare tag 2 para instrução
+				when ICTAG2 =>
 					if hitSignal = '1' then 
-					   state <= HIT;
+					   state <= IHIT;
 
 					else -- Miss
-						state <= MISS;
-													
-                    end if;	
+						state <= IMISS;								
+					end if;
 					
-				--- estado Hit
-				when HIT =>
+				--- compare tag para dados
+				when DCTAG =>
+					if hitSignal = '1' then
+						state <= DHIT;
+					elsif hitSignal = '0' then
+						state < DMISS;
+					end if;
+
+				--- estado Hit dados
+				when DHIT =>
 					state <= READY;
-					
-				--- estado Miss
-				when MISS =>
+				
+				--- estado Miss dados
+				when DMISS =>
 					if memReady = '1' then
-						state <= MREADY;
+						state <= DMREADY;
                     end if;
-					
-				--- estado Memory Ready
-				when MREADY =>
-					state <= CTAG2;			
-					
+				
+				--- estado dados Memory Ready
+				when DMREADY =>
+					state <= DCTAG2;
+				
+				--- compare tag 2 para dados
+				when DCTAG2 =>
+					if hitSignal = '1' then 
+					   state <= DHIT;
+
+					else -- Miss
+						state <= DMISS;	
+					end if;							
+
 				when others =>
 					state <= INIT;
+
 			end case;
 		end if;
 	end process;
 	
 	--- saidas ---
-	         
+
+	-- cdL2Ready
+	cdL2Ready <= '1' when state = DHIT else '0';
+
+	-- ciL2Ready
+	ciL2Ready <= '1' when state = IHIT else '0';
+	
+	-- addrCacheD
+	addrCacheD <= '1' when (state = DCTAG or state = DCTAG2 or state = DHIT or state = DMISS or state = DMREADY)
+							else '0';
+	
 	-- writeOptions
-	writeOptions <= "01" when state = MREADY   else
-        	         "10" when state = WRITE else 
+	writeOptions <= "01" when (state = IMREADY or state = DMREADY) else
+        	        -- "10" when state = WRITE else 
 		             "00";
 	         		 
 	-- updateInfo
-	updateInfo <= '1' when state = MREADY else '0';
+	updateInfo <= '1' when (state = IMREADY or state = DMREADY) else '0';
 	         	   				  
     -- memory		
-	memEnable <= '1' when state = MISS   else '0';
+	memEnable <= '1' when (state = IMISS or state = DMISS ) else '0';
 	memRW     <= '1' when state = MWRITE else '0';
 	
 
