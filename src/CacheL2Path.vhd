@@ -22,7 +22,7 @@ entity cacheL2Path is
 		writeOptions:   in  bit_vector(1 downto 0);
 		memWrite:       in  bit;
 		updateInfo:     in  bit;
-		switchAddr:     in  bit;
+		addrCacheD:     in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
 		
@@ -32,11 +32,13 @@ entity cacheL2Path is
 		vbIndex:        in  bit_vector(6 downto 0);
 
 		-- I/O relacionados ao cache de dados
-		cdAddr:         in  bit_vector(63 downto 0);
+		cdTag:          in  bit_vector(46 downto 0);
+		cdIndex:        in  bit_vector(6 downto 0);
 		cdDataOut:      out word_vector_type(31 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao cache de instruções
-		ciAddr:         in  bit_vector(63 downto 0);
+		ciTag:          in  bit_vector(46 downto 0);
+		ciIndex:        in  bit_vector(6 downto 0);
 		ciDataOut:      out word_vector_type(31 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados a Memoria princial
@@ -86,9 +88,6 @@ architecture cacheL2Path_arch of cacheL2Path is
 
 	--- definicao do cache
     signal cache: cacheType := (others => cache_set_init);
-
-	signal addr: bit_vector(63 downto 0);
-	signal memBlockAddr: natural;
 	signal index: natural;
 	signal tag: bit_vector(46 downto 0);
 	signal set_index: natural;
@@ -97,13 +96,9 @@ architecture cacheL2Path_arch of cacheL2Path is
 
 begin
 
-	-- lógica para definir qual endereço será análisado, dados ou instrução
-	addr <= cdAddr when switchAddr = '1' else ciAddr;
-
-	-- obtem campos do cache a partir do endereco de entrada
-	memBlockAddr <= to_integer(unsigned(addr(63 downto 7)));
-	index <= memBlockAddr mod number_of_sets;
-	tag <= addr(63 downto 17);
+	-- lógica para definir qual idenx ou tag será análisado, o de dados ou o de instrução
+	index <= to_integer(unsigned(ciIndex) when addrCacheD = '1' else to_integer(unsigned(cdIndex);
+	tag <= to_integer(unsigned(ciTag) when addrCacheD = '1' else to_integer(unsigned(cdTag);
 
 	-- Logica que define o index dentro do conjunto em caso de hit ou nao.
 	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco
@@ -144,12 +139,12 @@ begin
 
 	memBlockOut <= cache(index).set(set_index).data;
 	
-	process(switchAddr)
+	process(addrCacheD)
 	begin
-		if(switchAddr'event) then
-			if(switchAddr = '0') then
+		if(addrCacheD'event) then
+			if(addrCacheD = '0') then
 				ciDataOut <= cache(index).set(set_index).data after acessTime;
-			elsif (switchAddr = '1') then
+			elsif (addrCacheD = '1') then
 				cdDataOut <= cache(index).set(set_index).data after acessTime;
 			end if;
 		end if;
