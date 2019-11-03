@@ -28,6 +28,8 @@ entity cacheL2Path is
 		
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(31 downto 0) := (others => word_vector_init);
+		vbTag:          in  bit_vector(46 downto 0);
+		vbIndex:        in  bit_vector(6 downto 0);
 
 		-- I/O relacionados ao cache de dados
 		cdAddr:         in  bit_vector(63 downto 0);
@@ -88,7 +90,6 @@ architecture cacheL2Path_arch of cacheL2Path is
 	signal addr: bit_vector(63 downto 0);
 	signal memBlockAddr: natural;
 	signal index: natural;
-	signal wordOffset: natural;
 	signal tag: bit_vector(46 downto 0);
 	signal set_index: natural;
 	signal hitSignal: bit; --- sinal interno utilizado para poder usar o hit na logica do set_index
@@ -172,6 +173,7 @@ begin
 				cache(index).set(set_index).data <= memBlockIn;
 
 			elsif (writeOptions = "10") then
+				-- implementar lógica de substituição de blocos (usa o que estiver vazio, se não sobrescreve o indice 0)
 				cache(index).set(set_index).data(wordOffset) <= dataIn after accessTime;
 				cache(index).set(set_index).dirty <= '1';
 			end if;
