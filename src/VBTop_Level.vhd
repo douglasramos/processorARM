@@ -2,7 +2,7 @@
 -- ARM
 --
 -- Description:
---     Victim Buffer (Unidade de controle)
+--     Victim Buffer (TopLevel)
 
 library ieee;
 use ieee.numeric_bit.all;
@@ -12,7 +12,7 @@ use ieee.numeric_bit.all;
 use types.all;
 
 
-entity VBTopLevel is
+entity VBTopLevel is										 
     generic (
         accessTime: in time := 5 ns
     );
@@ -23,11 +23,14 @@ entity VBTopLevel is
 		readyL2			   		   : in  bit;						 
 		evictedBlockData		   : in  word_vector_type(31 downto 0);		-- Um bloco, 32 words
 		evictedBlockDataAddress	   : in  bit_vector(63 downto 0);
+		evictedBlockDataDirty	   : in  bit;
 		evictedBlockInst		   : in  word_vector_type(31 downto 0);		-- Um bloco, 32 words
 		evictedBlockInstAddress	   : in  bit_vector(63 downto 0);
+		evictedBlockInstDirty	   : in bit := '0';						    -- Instrução não tem write!
 		blockOut  	  			   : out word_vector_type(31 downto 0);     -- Saída do buffer: um bloco
 		blockOutAddress			   : out bit_vector(63 downto 0);
-		blockOutDataInst		   : out bit								-- '1' if data else '0'
+		blockOutDataInst		   : out bit;								-- '1' if data else '0'
+		blockOutIsDirty			   : out bit
     );
 end entity VBTopLevel;
 
@@ -57,11 +60,14 @@ component victimBuffer is
 		readyRead			       : in  bit;
 		evictedBlockData		   : in  word_vector_type(31 downto 0);		-- Um bloco, 32 words
 		evictedBlockDataAddress	   : in  bit_vector(63 downto 0);
+		evictedBlockDataDirty	   : in  bit;
 		evictedBlockInst		   : in  word_vector_type(31 downto 0);		-- Um bloco, 32 words
 		evictedBlockInstAddress	   : in  bit_vector(63 downto 0);
+		evictedBlockInstDirty	   : in  bit;
 		blockOut  	  			   : out word_vector_type(31 downto 0);     -- Saída do buffer: um bloco
 		blockOutAddress			   : out bit_vector(63 downto 0);
-		blockOutDataInst		   : out bit								-- '1' if data else '0'
+		blockOutDataInst		   : out bit;								-- '1' if data else '0'
+		blockOutIsDirty			   : out bit
     );																	 	
 end component;
 
@@ -74,7 +80,7 @@ begin
 	VBUC : VBControl port map(clk, queueInst, queueData, readyL2, queueBlockData, queueBlockInst, readyRead);
 	
 	VBDatapath : victimBuffer generic map(accessTime) port map(queueBlockData, queueBlockInst, readyRead,evictedBlockData,
-																evictedBlockDataAddress, evictedBlockInst, evictedBlockInstAddress,
-																blockOut, blockOutAddress, blockOutDataInst);
+																evictedBlockDataAddress, evictedBlockDataDirty, evictedBlockInst, evictedBlockInstAddress,
+																evictedBlockInstDirty, blockOut, blockOutAddress, blockOutDataInst, blockOutIsDirty);
 end archi;
    

@@ -7,14 +7,14 @@
 
 
 --https://surf-vhdl.com/vhdl-for-loop-statement/    "como fazer loops for"
-	
+								     
 	
 library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
 
-use types.all; -- 1 word, 32 bits
+use types.all; -- 1 word, 32 bits							 
 
 entity victimBuffer is
     generic (
@@ -26,12 +26,15 @@ entity victimBuffer is
 		queueBlockInst       	   : in  bit;
 		readyRead			       : in  bit;
 		evictedBlockData		   : in  word_vector_type(31 downto 0);		-- Um bloco, 32 words
-		evictedBlockDataAddress	   : in  bit_vector(63 downto 0);
+		evictedBlockDataAddress	   : in  bit_vector(63 downto 0);		   
+		evictedBlockDataDirty	   : in  bit;
 		evictedBlockInst		   : in  word_vector_type(31 downto 0);		-- Um bloco, 32 words
-		evictedBlockInstAddress	   : in  bit_vector(63 downto 0);
+		evictedBlockInstAddress	   : in  bit_vector(63 downto 0); 
+		evictedBlockInstDirty	   : in bit := '0';						    -- Instrução não tem write!
 		blockOut  	  			   : out word_vector_type(31 downto 0);     -- Saída do buffer: um bloco
 		blockOutAddress			   : out bit_vector(63 downto 0);
-		blockOutDataInst		   : out bit								-- '1' if data else '0'
+		blockOutDataInst		   : out bit;								-- '1' if data else '0'
+		blockOutIsDirty			   : out bit
     );																	 	
 end victimBuffer;
 		
@@ -45,7 +48,8 @@ architecture archi of victimBuffer is
         valid    : bit;
 		address	 : bit_vector(63 downto 0);
         data     : word_vector_type(palavrasPorBloco - 1 downto 0);
-		dataInst : bit;													 --'1' if data else '0'
+		dataInst : bit;													 --'1' if data else '0'	
+		isDirty  : bit;
     end record RowType;
 	
 	type bufferType is array (bufferLength-1 downto 0) of RowType;       
@@ -57,7 +61,8 @@ architecture archi of victimBuffer is
 	constant buffer_row_cleared : RowType := (valid => '0',
 											  address  => (others => '0'),
 											  data     => (others => word_vector_init),
-											  datainst => '0');
+											  datainst => '0',
+											  isDirty  => '0');
 	
 begin														  
 	
@@ -75,7 +80,8 @@ begin
 			
 			blockOut 		 <= victimBufferData(0).data;	
 			blockOutAddress  <= victimBufferData(0).address;
-			blockOutDataInst <= victimBufferdata(0).dataInst;									   
+			blockOutDataInst <= victimBufferdata(0).dataInst;
+			blockOutIsDirty  <= victimBufferdata(0).isDirty;
 			
 			dequeueLoop : for i in 0 to bufferLength-2 loop
 				victimBufferData(i) <= victimBufferData(i+1);	
@@ -94,6 +100,7 @@ begin
 					victimBufferData(i).valid    <= '1';
 					victimBufferData(i).address  <= evictedBlockDataAddress;
 					victimBufferData(i).dataInst <= '1';
+					victimBufferData(i).isDirty  <= evictedBlockDataDirty;
 					stopQueuing := 1;
 				end if;
 			end loop queueLoop;
@@ -107,31 +114,33 @@ begin
 					victimBufferData(i).data     <= evictedBlockInst;
 					victimBufferData(i).valid    <= '1';
 					victimBufferData(i).address  <= evictedBlockInstAddress;
-					victimBufferData(i).dataInst <= '0';
+					victimBufferData(i).dataInst <= '0';				  
+					victimBufferData(i).isDirty  <= '0';    --Instrução não tem Write!
 					stopQueuing := 1;
 				end if;
 			end loop queueLoop2;
 		end if;
 		-------------------------------------------------------------------------------------------------------
 		--Queue by Instruction cache AND data cache
-		if(queueBlockInst'event and queueBlockInst = '1' and queueBlockData'event and queueBlockData = '1') then 
-			stopQueuing := 0;
-			queueLoop3 : for i in 0 to bufferLength-1 loop	
-				if(victimBufferData(i) = buffer_row_cleared and stopQueuing = 0) then
-					victimBufferData(i).data     <= evictedBlockInst;
-					victimBufferData(i).valid    <= '1';
-					victimBufferData(i).address  <= evictedBlockInstAddress;
-					victimBufferData(i).dataInst <= '0';
-					
-					victimBufferData(i+1).data     <= evictedBlockdata;
-					victimBufferData(i+1).valid    <= '1';
-					victimBufferData(i+1).address  <= evictedBlockDataAddress;
-					victimBufferData(i+1).dataInst <= '1';
-					
-					stopQueuing := 1;
-				end if;
-			end loop queueLoop3;
-		end if;	
+		--if(queueBlockInst'event and queueBlockInst = '1' and queueBlockData'event and queueBlockData = '1') then 
+		--	stopQueuing := 0;
+		--	queueLoop3 : for i in 0 to bufferLength-1 loop	
+		--		if(victimBufferData(i) = buffer_row_cleared and stopQueuing = 0) then
+		--			victimBufferData(i).data     <= evictedBlockInst;
+		--			victimBufferData(i).valid    <= '1';
+		--			victimBufferData(i).address  <= evictedBlockInstAddress;
+		--			victimBufferData(i).dataInst <= '0';							  
+		--			
+		--			
+		--			victimBufferData(i+1).data     <= evictedBlockdata;
+		--			victimBufferData(i+1).valid    <= '1';
+		--			victimBufferData(i+1).address  <= evictedBlockDataAddress;
+		--			victimBufferData(i+1).dataInst <= '1';
+		--			
+		--			stopQueuing := 1;
+		--		end if;
+		--	end loop queueLoop3;
+		--end if;	
 		
 		
 	

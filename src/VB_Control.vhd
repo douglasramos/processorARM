@@ -2,7 +2,7 @@
 -- ARM
 --
 -- Description:
---     Victim Buffer (Unidade de controle)
+--     Victim Buffer - UC
 
 library ieee;
 use ieee.numeric_bit.all;
@@ -53,37 +53,37 @@ begin
 					
 				--- estado Ready
 				when READY =>
-					if(queueInst = '1' and queueData = '0' and readyL2 = '0') then
+					if(queueInst'event and queueInst = '1' and queueData = '0' and readyL2 = '0') then
 						state <= QUEUE_INST;
                     end if;					
 					
-					if(queueInst = '0' and queueData = '1' and readyL2 = '0') then
+					if(queueInst = '0' and queueData'event and queueData = '1' and readyL2 = '0') then
 						state <= QUEUE_DATA;
 					end if;					
 					
-					if(queueInst = '0' and queueData = '0' and readyL2 = '1') then
+					if(queueInst = '0' and queueData = '0' and readyL2'event and readyL2 = '1') then
 						state <= L2READY;
 					end if;				 
 					
-					if(queueInst = '1' and queueData = '1' and readyL2 = '0') then
+					if(queueInst'event and queueInst = '1' and queueData'event and queueData = '1' and readyL2 = '0') then
 						state <= QUEUEQUEUE_1;
 					end if;
 					
-					if(queueInst = '1' and queueData = '0' and readyL2 = '1') then
+					if(queueInst'event and queueInst = '1' and queueData = '0' and readyL2'event and readyL2 = '1') then
 						state <= INST_L2READY;
 					end if;					  
 					
-					if(queueInst = '0' and queueData = '1' and readyL2 = '1') then
+					if(queueInst = '0' and queueData'event and queueData = '1' and readyL2'event and readyL2 = '1') then
 						state <= DATA_L2READY;
 					end if;			 
 					
-					if(queueInst = '1' and queueData = '1' and readyL2 = '1') then
+					if(queueInst'event and queueInst = '1' and queueData'event and queueData = '1' and readyL2'event and readyL2 = '1') then
 						state <= QUEUEQUEUEREADY;
 					end if;						 
 					
 					if(queueInst = '0' and queueData = '0' and readyL2 = '0') then
 						state <= READY;
-					end if;				
+					end if;										  
 					
 				when QUEUE_DATA =>
 					state <= READY;
