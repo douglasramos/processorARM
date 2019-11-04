@@ -99,7 +99,7 @@ begin
 						state <= ICTAG;
 					elsif cdEnable = '1' then
 						state <= DCTAG;
-					elsif vbChange = 1
+					else
 						state <= CHECKVB;
 					end if;
 				
@@ -199,9 +199,12 @@ begin
 
 				--- check Victim Buffer
 				when CHECKVB =>
-					state <= VBCDIRTY;
-					vbChange := 0;
-				
+					if vbChange = 1 then
+						state <= VBCDIRTY;
+						vbChange := 0;
+					else
+						state <= READY;
+					end if;
 				--- compare VB dirty bit
 				when VBCDIRTY =>
 					if dirtyBit = '1' then
