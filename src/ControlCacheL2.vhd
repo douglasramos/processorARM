@@ -22,7 +22,9 @@ entity ControlCacheL2 is
         clk            in  bit;
 
 		-- I/O relacionado ao victim buffer
-		vbDequeue      out bit;
+		vbDataIn:      in word_vector_type(31 downto 0) := (others => word_vector_init);
+		vbAddr:        in  bit_vector(63 downto 0);
+		vbReady        out bit;
 
 		-- I/O relacionado ao cache de dados
 		cdRW           in  bit;
@@ -56,7 +58,7 @@ architecture ControlCacheL2_arch of ControlCacheL2 is
     signal state: states := INIT; 
 
     -- Sinais internos
-    signal enable: bit;
+	signal enable: bit;
     
 begin 
 
@@ -64,21 +66,37 @@ begin
     enable <= ciEnable or cdEnable;
     -- Write signal geral
 
-    process (clk, enable)									  
-	begin
-		if (rising_edge(clk) or enable'event) then
-			case state is 
+	process (clk, enable, vbDataIn, vbAddr)
 	
+	-- detecta alteração na saída do victim buffer
+	variable vbChange : natural := 0;
+	
+	begin
+		--- se ocorreu alguma mudança no IO do victim buffer, ativa a variavel
+		if (vbDataIn'event or vbAddr'event) then
+			vbChange := 1;
+		end if;
+
+		if (rising_edge(clk) or enable'event) then
+			
+			-- Fluxo: 
+			--	- Primeiro verifica se ocorreu alguma alteração na interface com Victim Buffer (CHECKVB), se mudou tem dados a ser persistido em L2
+			--	- Feito isso analisa se ocorreu alguma socilitação de dado por parte dos caches L1 (READY).
+			--	- Cache de instrução tem prioridade na busca pelo dado (REQ).
+			--	- No estado de Hit do CacheI (IHIT) se não houver socilitação da CacheD, a maquina de estados volta para CHECKVB, se houver socilitação faza busca.
+			--	- Ao fim da analisa da socilitacação, a maquina de estados volta obrigatoriamente para (CHECKVB)
+
+			case state is 
 				--- estado inicial
 				when INIT =>
-					state <= READY;	
-					
+					state <= CHECKVB;	
+				
 				--- estado Ready
 				when READY =>
                     if enable'event then
                         state <= REQ;
-                    end if;
-				
+					end if;
+	
 				--- estado Requisições
 				when REQ =>
 					if ciEnable = '1' then
@@ -100,7 +118,7 @@ begin
 					if cdEnable=1 then
 						state <= DCTAG;
 					else
-						state <= READY;
+						state <= CHECKVB;
 					end if;
 				
 				--- estado Miss Instrução
@@ -132,7 +150,7 @@ begin
 
 				--- estado Hit dados
 				when DHIT =>
-					state <= READY;
+					state <= CHECKVB;
 				
 				--- estado Miss dados
 				when DMISS =>
@@ -152,10 +170,19 @@ begin
 					else -- Miss
 						state <= DMISS;	
 					end if;							
+				
 
+				--- check Victim Buffer
+				when CHECKVB =>
+					if vbChange = 1 then
+						state <= VBCTAG;
+						vbChange := 0;
+					end if;
+				
+				
+					
 				when others =>
 					state <= INIT;
-
 			end case;
 		end if;
 	end process;

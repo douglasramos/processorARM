@@ -138,6 +138,10 @@ begin
 	dirtyBit <= cache(index).set(set_index).dirty;
 
 	memBlockOut <= cache(index).set(set_index).data;
+
+	ciDataOut <= cache(index).set(set_index).data after acessTime;
+
+	cdDataOut <= cache(index).set(set_index).data after acessTime;
 	
 	process(addrCacheD)
 	begin
