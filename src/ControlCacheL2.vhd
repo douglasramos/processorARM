@@ -29,19 +29,21 @@ entity ControlCacheL2 is
 		-- I/O relacionado ao cache de dados
 		cdRW           in  bit;
 		cdEnable       in  bit;
-		cdL2Ready      out bit;
+		cdL2Ready      out bit := '0';
 
 		-- I/O relacionado ao cache de instruções
 		ciRW           in  bit;
 		ciEnable       in  bit;
-		ciL2Ready      out bit;
+		ciL2Ready      out bit := '0';
 
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
+		addrOptions    out bit_vector(1 downto 0) := "00";
+		ciReady        out bit := '0';
+		cdReady        out bit := '0';
 		updateInfo:    out bit := '0';
-		addrCacheD     out bit := '0';
 		
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
@@ -57,43 +59,37 @@ architecture ControlCacheL2_arch of ControlCacheL2 is
     type states is (INIT, READY, REQ, ICTAG, ICTAG2, IHIT, IMISS, IMREADY, DCTAG, DCTAG2, DHIT, DMISS, DMREADY);
     signal state: states := INIT; 
 
-    -- Sinais internos
-	signal enable: bit;
     
 begin 
 
-    -- enable geral
-    enable <= ciEnable or cdEnable;
-    -- Write signal geral
 
-	process (clk, enable, vbDataIn, vbAddr)
+	process (clk, cdEnable, ciEnable, vbDataIn, vbAddr)
 	
 	-- detecta alteração na saída do victim buffer
 	variable vbChange : natural := 0;
 	
 	begin
-		--- se ocorreu alguma mudança no IO do victim buffer, ativa a variavel
+		-- Fluxo: 
+		--	- Primeiro verifica se ocorreu alguma alteração na interface com Victim Buffer (CHECKVB), se mudou tem dados a ser persistido em L2
+		--	- Feito isso analisa se ocorreu alguma socilitação de dado por parte dos caches L1 (READY).
+		--	- Cache de instrução tem prioridade na busca pelo dado (REQ).
+		--	- No estado de Hit do CacheI (IHIT) se não houver socilitação da CacheD, a maquina de estados volta para CHECKVB, se houver socilitação faza busca.
+		--	- Ao fim da analisa da socilitacação, a maquina de estados volta obrigatoriamente para (CHECKVB)
+		
+		--- se ocorreu alguma mudança no IO do victim buffer, ativa a variavel vbChange
 		if (vbDataIn'event or vbAddr'event) then
 			vbChange := 1;
 		end if;
 
-		if (rising_edge(clk) or enable'event) then
-			
-			-- Fluxo: 
-			--	- Primeiro verifica se ocorreu alguma alteração na interface com Victim Buffer (CHECKVB), se mudou tem dados a ser persistido em L2
-			--	- Feito isso analisa se ocorreu alguma socilitação de dado por parte dos caches L1 (READY).
-			--	- Cache de instrução tem prioridade na busca pelo dado (REQ).
-			--	- No estado de Hit do CacheI (IHIT) se não houver socilitação da CacheD, a maquina de estados volta para CHECKVB, se houver socilitação faza busca.
-			--	- Ao fim da analisa da socilitacação, a maquina de estados volta obrigatoriamente para (CHECKVB)
-
+		if (rising_edge(clk) or cdEnable'event or ciEnable'event) then
 			case state is 
 				--- estado inicial
 				when INIT =>
-					state <= CHECKVB;	
+					state <= READY;	
 				
 				--- estado Ready
 				when READY =>
-                    if enable'event then
+                    if (ciEnable = '1' or cdEnable = '1' or vbChange = '1') then
                         state <= REQ;
 					end if;
 	
@@ -103,16 +99,32 @@ begin
 						state <= ICTAG;
 					elsif cdEnable = '1' then
 						state <= DCTAG;
+					elsif vbChange = 1
+						state <= CHECKVB;
 					end if;
 				
 				--- compare tag para instruções
 				when ICTAG =>
 					if hitSignal = '1' then
 						state <= IHIT;
+					-- MISS
 					elsif hitSignal = '0' then
-						state < IMISS;
+						-- primeiro analisa se bloco em questão é "sujo"
+						if dirtyBit = '1' then
+							state <= IMISSMWRITE;	-- precisa colocar dado atual na Memoria primeiro
+						elsif dirtyBit = '0' then
+							state <= IMISS; -- pode tratar miss normalmente
+						end if;	
 					end if;
 				
+				--- estado Instruction Miss Memory Write
+				when IMISSMWRITE =>
+					if memReady = '1' then
+						state <= IMISS; -- se já salvou na memória, pode continuar miss
+					elsif memReady = '0' then
+						state <= IMISSMWRITE; -- espera salvar na memória
+					end if;
+
 				--- estado Hit instrução
 				when IHIT =>
 					if cdEnable=1 then
@@ -125,7 +137,7 @@ begin
 				when IMISS =>
 					if memReady = '1' then
 						state <= IMREADY;
-                    end if;
+					end if;
 				
 				--- estado Instrução Memory Ready
 				when IMREADY =>
@@ -145,7 +157,20 @@ begin
 					if hitSignal = '1' then
 						state <= DHIT;
 					elsif hitSignal = '0' then
-						state < DMISS;
+						-- primeiro analisa se bloco em questão é "sujo"
+						if dirtyBit = '1' then
+							state <= DMISSMWRITE;	-- precisa colocar dado atual na Memoria primeiro
+						elsif dirtyBit = '0' then
+							state <= DMISS; -- pode tratar miss normalmente
+						end if;
+					end if;
+
+				--- estado Instruction Miss Memory Write
+				when DMISSMWRITE =>
+					if memReady = '1' then
+						state <= DMISS; -- se já salvou na memória, pode continuar miss
+					elsif memReady = '0' then
+						state <= DMISSMWRITE; -- espera salvar na memória
 					end if;
 
 				--- estado Hit dados
@@ -174,13 +199,29 @@ begin
 
 				--- check Victim Buffer
 				when CHECKVB =>
-					if vbChange = 1 then
-						state <= VBCTAG;
-						vbChange := 0;
+					state <= VBCDIRTY;
+					vbChange := 0;
+				
+				--- compare VB dirty bit
+				when VBCDIRTY =>
+					if dirtyBit = '1' then
+						state <= VBMWRITE;	-- precisa colocar dado atual na Memoria primeiro
+					elsif dirtyBit = '0' then
+							state <= VBWRITE; -- pode ja escrever no cache
 					end if;
 				
+				--- estado VB Write
+				when VBWRITE =>
+				   state <= READY;
 				
-					
+				--- estado VB Memory Write
+				when VBMWRITE =>
+					if memReady = '1' then
+						state <= VBWRITE; -- se já salvou na memória, pode escrever dado na cache
+					elsif memReady = '0' then
+						state <= VBMWRITE; -- espera salvar na memória
+					end if;
+
 				when others =>
 					state <= INIT;
 			end case;
@@ -201,15 +242,15 @@ begin
 	
 	-- writeOptions
 	writeOptions <= "01" when (state = IMREADY or state = DMREADY) else
-        	        -- "10" when state = WRITE else 
-		             "00";
+        	        "10" when state = VBWRITE else 
+		            "00";
 	         		 
 	-- updateInfo
 	updateInfo <= '1' when (state = IMREADY or state = DMREADY) else '0';
 	         	   				  
     -- memory		
 	memEnable <= '1' when (state = IMISS or state = DMISS ) else '0';
-	memRW     <= '1' when state = MWRITE else '0';
+	memRW     <= '1' when (state = VBMWRITE or state = IMISSMWRITE) else '0';
 	
 
 end architecture ControlCacheL2_arch;

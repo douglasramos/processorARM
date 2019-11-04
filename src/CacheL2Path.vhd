@@ -20,25 +20,25 @@ entity cacheL2Path is
 
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit_vector(1 downto 0);
+		addrOptions:    in  bit_vector(1 downto 0);
 		memWrite:       in  bit;
 		updateInfo:     in  bit;
-		addrCacheD:     in  bit;
+		ciL2Ready       in  bit;
+		cdL2Ready       in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
 		
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(31 downto 0) := (others => word_vector_init);
-		vbTag:          in  bit_vector(46 downto 0);
-		vbIndex:        in  bit_vector(6 downto 0);
+		vbAddr          in  bit_vector(63 downto 0);
+		dirtyData       in  bit;
 
 		-- I/O relacionados ao cache de dados
-		cdTag:          in  bit_vector(46 downto 0);
-		cdIndex:        in  bit_vector(6 downto 0);
+		cdAddr:          in  bit_vector(63 downto 0);
 		cdDataOut:      out word_vector_type(31 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao cache de instruções
-		ciTag:          in  bit_vector(46 downto 0);
-		ciIndex:        in  bit_vector(6 downto 0);
+		ciAddr:         in  bit_vector(63 downto 0);
 		ciDataOut:      out word_vector_type(31 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados a Memoria princial
@@ -87,7 +87,10 @@ architecture cacheL2Path_arch of cacheL2Path is
 
 
 	--- definicao do cache
-    signal cache: cacheType := (others => cache_set_init);
+	signal cache: cacheType := (others => cache_set_init);
+
+	signal addr: bit_vector(63 downto 0);
+	signal memBlockAddr: natural;
 	signal index: natural;
 	signal tag: bit_vector(46 downto 0);
 	signal set_index: natural;
@@ -97,8 +100,16 @@ architecture cacheL2Path_arch of cacheL2Path is
 begin
 
 	-- lógica para definir qual idenx ou tag será análisado, o de dados ou o de instrução
-	index <= to_integer(unsigned(ciIndex) when addrCacheD = '1' else to_integer(unsigned(cdIndex);
-	tag <= to_integer(unsigned(ciTag) when addrCacheD = '1' else to_integer(unsigned(cdTag);
+	addr <= ciAddr when (addrOptions = "01") else
+		    cdAddr when (addrOptions = "10") else
+			vbAddr when (addrOptions = "11");
+	
+
+	-- obtem campos do cache a partir do endere�o de entrada
+	memBlockAddr <= to_integer(unsigned(addr(63 downto 7)));
+	index 		 <= memBlockAddr mod number_of_sets;
+	tag 		 <= cpuAddr(63 downto 14);
+	wordOffset 	 <= to_integer(unsigned(cpuAddr(6 downto 2)));
 
 	-- Logica que define o index dentro do conjunto em caso de hit ou nao.
 	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco
@@ -139,20 +150,10 @@ begin
 
 	memBlockOut <= cache(index).set(set_index).data;
 
-	ciDataOut <= cache(index).set(set_index).data after acessTime;
+	ciDataOut <= (cache(index).set(set_index).data after acessTime) when ciL2Ready = '1';
 
-	cdDataOut <= cache(index).set(set_index).data after acessTime;
+	cdDataOut <= (cache(index).set(set_index).data after acessTime) when cdL2Ready = '1';
 	
-	process(addrCacheD)
-	begin
-		if(addrCacheD'event) then
-			if(addrCacheD = '0') then
-				ciDataOut <= cache(index).set(set_index).data after acessTime;
-			elsif (addrCacheD = '1') then
-				cdDataOut <= cache(index).set(set_index).data after acessTime;
-			end if;
-		end if;
-	end process;
 
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions, memWrite)
@@ -167,19 +168,24 @@ begin
 
 			-- writeOptions 00 -> mantem valor do cache inalterado
 			-- writeOptions 01 -> usa o valor do mem (ocorreu miss)
-			-- writeOptions 10 -> usa o valor do vbDataIn (victim budder write)
+			-- writeOptions 10 -> usa o valor do vbDataIn (victim buffer write)
 			if (writeOptions = "01") then
 				cache(index).set(set_index).data <= memBlockIn;
+				-- atualizou com a memória => dirty bit recebe 0
+				cache(index).set(set_index).dirty <= '0';
 
 			elsif (writeOptions = "10") then
-				-- implementar lógica de substituição de blocos (usa o que estiver vazio, se não sobrescreve o indice 0)
-				cache(index).set(set_index).data(wordOffset) <= dataIn after accessTime;
-				cache(index).set(set_index).dirty <= '1';
+				cache(index).set(set_index).data(wordOffset) <= vbDataIn after accessTime;
+				if dirtyData = '1' then 
+					cache(index).set(set_index).dirty <= '1';
+				end if;
 			end if;
 
 			-- Escreve na memoria
 			if (memWrite'event and memWrite = '1') then
 				memBlockOut <= cache(index).set(set_index).data after accessTime;
+				-- atualizou com a memória => dirty bit recebe 0
+				cache(index).set(set_index).dirty <= '0';
 			end if;
 
 		end if;
