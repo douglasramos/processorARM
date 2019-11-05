@@ -98,7 +98,11 @@ begin
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(enable)
 	begin
-		if (enable'event) then
+		if (enable'event and enable = '1') then
+
+			-- Inicio do processamento
+			ciMemReady <= '0';
+			cdMemReady <= '0';
 
 			-- Memory Read Cache Instrucoes
 			if (ciEnable = '1' and ciMemRw = '0') then

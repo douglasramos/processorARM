@@ -42,7 +42,7 @@ end entity cacheDControl;
 architecture cacheDControl_arch of cacheDControl is
 
 	-- Definicao de estados
-    type states is (INIT, READY, CTAG, WRITE, MWRITE, CTAG2, HIT, MISS, MREADY);
+    type states is (INIT, READY, CTAG, WRITE, MWRITE, CTAG2, HIT, MISS, MREADY, MWRITEBF);
     signal state: states := INIT;
 
 begin
@@ -68,7 +68,11 @@ begin
 					   		state <= HIT;
 
 						else -- Miss
-							state <= MISS;
+							if dirtyBit = '1' then
+								state <= MWRITEBF;
+							else
+								state <= MISS;
+							end if;
                 		end if;
 
 					elsif cpuWrite = '1' and clkPipeline = '1' then -- Escrita no primeiro ciclo
@@ -111,7 +115,16 @@ begin
 				when MISS =>
 					if memReady = '1' then
 						state <= MREADY;
-                    end if;
+					end if;
+
+				--- estado Memory Write Before Read
+				--- caso em que o memory read sobrescreveria um bloco com dirtybit
+				when MWRITEBF =>
+					if memReady = '1' then
+						state <= MISS;
+					elsif memReady = '0' then
+						state <= MWRITEBF;
+					end if;
 
 				--- estado Memory Ready
 				when MREADY =>
@@ -132,8 +145,8 @@ begin
 					  state = MWRITE else '0';
 
 	-- writeOptions
-	writeOptions <=  "01" when state = MREADY   else
-        	         "10" when state = WRITE else
+	writeOptions <=  "01" when state = MREADY  else
+        	         "10" when state = WRITE   else
 		             "00";
 
 	-- updateInfo

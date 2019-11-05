@@ -108,6 +108,7 @@ begin
 			-- writeOptions 10 -> usa o valor do dataIn (cpu write)
 			if (writeOptions = "01") then
 				cache(index).data <= memBlockIn;
+				cache(index).dirty <= '0'; -- agora cache e mem estão atualizados
 
 			elsif (writeOptions = "10") then
 				cache(index).data(wordOffset) <= dataIn after accessTime;
