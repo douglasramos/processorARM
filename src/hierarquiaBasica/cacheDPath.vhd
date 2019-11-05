@@ -20,13 +20,12 @@ entity cacheDPath is
 
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit_vector(1 downto 0);
-		memWrite:       in  bit;
 		updateInfo:     in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
 
 		-- I/O relacionados ao MEM stage
-        cpuAdrr:        in  bit_vector(9 downto 0);
+        cpuAddr:        in  bit_vector(9 downto 0);
 		dataIn :        in  word_type;
 		dataOut:        out word_type;
 
@@ -40,7 +39,7 @@ end entity cacheDPath;
 
 architecture cacheDPath_arch of cacheDPath is
 
-	constant cacheSize:        positive := 32; -- 32Bytes (8 palavras) 
+	constant cacheSize:        positive := 32; -- 32Bytes (8 palavras)
 	constant palavrasPorBloco: positive := 2;
 	constant blocoSize:        positive := palavrasPorBloco * 4; --- 2 * 4 = 8Bytes
     constant numberOfBlocks:   positive := cacheSize / blocoSize; --- 4
@@ -57,16 +56,15 @@ architecture cacheDPath_arch of cacheDPath is
 
 
     --- Cache eh formado por um array de conjuntos
-
 	type cacheType is array (numberOfBlocks - 1 downto 0) of cache_row_type;
 
 	constant cache_row_init : cache_row_type := (valid => '0',
-												 tag => (others => '0'), 
+												 tag => (others => '0'),
 												 dirty => '0',
 												 data => (others => word_vector_init));
 	--- definicao do cache
     signal cache: cache_type := (others => cache_row_init);
-	
+
 	-- demais sinais internos
 	signal memBlockAddr: natural;
 	signal index: natural;
@@ -75,11 +73,11 @@ architecture cacheDPath_arch of cacheDPath is
 	signal set_index: natural;
 
 begin
-	-- obtem campos do cache a partir do endere�o de entrada
-	memBlockAddr <= to_integer(unsigned(cpuAdrr(9 downto 3)));
+	-- obtem campos do cache a partir do endereco de entrada
+	memBlockAddr <= to_integer(unsigned(cpuAddr(9 downto 3)));
 	index <= memBlockAddr mod numberOfBlocks;
-	tag <= cpuAdrr(9 downto 5);
-	wordOffset <= to_integer(unsigned(cpuAdrr(2 downto 2)));
+	tag <= cpuAddr(9 downto 5);
+	wordOffset <= to_integer(unsigned(cpuAddr(2 downto 2)));
 
 	-- Logica que define o index dentro do conjunto em caso de hit ou nao.
 	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco
@@ -90,12 +88,12 @@ begin
 
 	--  saidas
 	dataOut <=	cache(index).data(wordOffset) after accessTime;
-	memAddr <= cpuAdrr;
+	memAddr <= cpuAddr;
 	dirtyBit <= cache(index).dirty;
 	memBlockOut <= cache(index).data;
 
 	-- atualizacao do cache de acordo com os sinais de controle
-	process(updateInfo, writeOptions, memWrite)
+	process(updateInfo, writeOptions)
 	begin
 		if (updateInfo'event or writeOptions'event) then
 
@@ -114,11 +112,6 @@ begin
 			elsif (writeOptions = "10") then
 				cache(index).data(wordOffset) <= dataIn after accessTime;
 				cache(index).dirty <= '1';
-			end if;
-
-			-- Escreve na memoria
-			if (memWrite'event and memWrite = '1') then
-				--memBlockOut <= cache(index).set(set_index).data after accessTime;
 			end if;
 
 		end if;

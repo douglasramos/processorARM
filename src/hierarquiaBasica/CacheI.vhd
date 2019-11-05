@@ -16,7 +16,7 @@ entity cacheI is
     port(
 		-- I/O relacionados ao pipeline
 		clk:     in  bit;
-		cpuAdrr: in  bit_vector(9 downto 0);
+		cpuAddr: in  bit_vector(9 downto 0);
       	stall:   out bit := '0';
 
 		-- I/O ao nível L2
@@ -69,7 +69,7 @@ component cacheIPath is
 		hit:            out bit := '0';
 
 		-- I/O relacionados ao IF stage
-        cpuAdrr: in  bit_vector(9 downto 0);
+        cpuAddr: in  bit_vector(9 downto 0);
         dataOut: out word_type;
 
         -- I/O relacionados a Memoria princial
@@ -91,7 +91,7 @@ begin
 		-- I/O relacionados ao stage IF
 		clk				=> clk,
         stall			=> stall,
-		pc				=> cpuAdrr,
+		pc				=> cpuAddr,
 
 		-- I/O relacionados ao cache
 		hitSignal		=> iHit,
@@ -113,7 +113,7 @@ begin
 		hit				=> iHit,
 
 		-- I/O relacionados ao IF stage
-        cpuAdrr			=> cpuAdrr,
+        cpuAddr			=> cpuAddr,
         dataOut			=> dataOut,
 
         -- I/O relacionados a Memoria princial

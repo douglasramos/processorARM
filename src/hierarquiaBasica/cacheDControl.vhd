@@ -20,9 +20,9 @@ entity cacheDControl is
 
 		-- I/O relacionados ao stage MEM
 		clk:            in  bit;
-		clk_pipeline:   in  bit;
-        cpu_write:      in  bit;
-		cpu_addr:       in  bit_vector(9 downto 0);
+		clkPipeline:    in  bit;
+        cpuWrite:       in  bit;
+		cpuAddr:        in  bit_vector(9 downto 0);
 		stall:          out bit := '0';
 
 		-- I/O relacionados ao cache
@@ -46,9 +46,9 @@ architecture cacheDControl_arch of cacheDControl is
     signal state: states := INIT;
 
 begin
-	process (clk, clk_pipeline, cpu_addr)
+	process (clk, clkPipeline, cpuAddr)
 	begin
-		if rising_edge(clk) or cpu_addr'event then -- talvez precise do rising_edge do clk pipeline
+		if rising_edge(clk) or cpuAddr'event then -- talvez precise do rising_edge do clk pipeline
 			case state is
 
 				--- estado inicial
@@ -57,13 +57,13 @@ begin
 
 				--- estado Ready
 				when READY =>
-                    if cpu_addr'event then
+                    if cpuAddr'event then
                         state <= CTAG;
                     end if;
 
 				--- estado Compare Tag
 				when CTAG =>
-					if cpu_write = '0' then	  -- Leitura
+					if cpuWrite = '0' then	  -- Leitura
 						if hitSignal = '1' then
 					   		state <= HIT;
 
@@ -71,7 +71,7 @@ begin
 							state <= MISS;
                 		end if;
 
-					elsif cpu_write = '1' and clk_pipeline = '1' then -- Escrita no primeiro ciclo
+					elsif cpuWrite = '1' and clkPipeline = '1' then -- Escrita no primeiro ciclo
 						if dirtyBit = '1' then
 							state <= MWRITE;	-- precisa colocar dado atual na Memoria primeiro
 						elsif dirtyBit = '0' then

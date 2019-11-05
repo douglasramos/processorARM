@@ -24,7 +24,7 @@ entity cacheIPath is
 		hit:            out bit := '0';
 
 		-- I/O relacionados ao IF stage
-        cpuAdrr: in  bit_vector(9 downto 0);
+        cpuAddr: in  bit_vector(9 downto 0);
         dataOut: out word_type := (others => '0');
 
         -- I/O relacionados a Memoria princial
@@ -67,16 +67,16 @@ architecture cacheIPath_arch of cacheIPath is
 
 begin
 	-- obtem campos do cache a partir do endereco de entrada
-	memBlockAddr <= to_integer(unsigned(cpuAdrr(9 downto 3)));
+	memBlockAddr <= to_integer(unsigned(cpuAddr(9 downto 3)));
 	index        <= memBlockAddr mod numberOfBlocks;
-	tag          <= cpuAdrr(9 downto 5);
-	wordOffset   <= to_integer(unsigned(cpuAdrr(2 downto 2)));
+	tag          <= cpuAddr(9 downto 5);
+	wordOffset   <= to_integer(unsigned(cpuAddr(2 downto 2)));
 
 
     --  saidas
 	hit <= '1' when cache(index).valid = '1' and cache(index).tag = tag else '0';
 	dataOut <=	cache(index).data(wordOffset);
-	memAddr <= cpuAdrr;
+	memAddr <= cpuAddr;
 
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions)
