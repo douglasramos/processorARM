@@ -27,7 +27,6 @@ entity memory is
 		ciDataBlock:  out  word_vector_type(1 downto 0) := (others => word_vector_init);
 		ciMemReady:   out  bit := '0';
 
-
 		-- I/O relacionados cache de dados
 		cdEnable:    in  bit;
 		cdMemRw:     in  bit; --- '1' write e '0' read
@@ -36,16 +35,15 @@ entity memory is
 		cdDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
 		cdMemReady:  out bit := '0'
 
-
     );
 end entity memory;
 
 architecture memory_arch of memory is
 
-	constant memSize: positive := 2**11; -- 2048Bytes = 512 * 4 bytes (512 words de 32bits)
+	constant memSize: positive := 2**10; -- 1024Bytes = 256 * 4 bytes (256 words de 32bits)
 	constant wordsPerBlock: positive := 2;
 	constant blockSize: positive := wordsPerBlock * 4; --- 8Bytes
-    constant numberOfBlocks: positive := memSize / blockSize; -- 256 blocos
+    constant numberOfBlocks: positive := memSize / blockSize; -- 128 blocos
 
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
 	type memRowType is record
