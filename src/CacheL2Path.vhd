@@ -21,7 +21,6 @@ entity cacheL2Path is
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit_vector(1 downto 0);
 		addrOptions:    in  bit_vector(1 downto 0);
-		memWrite:       in  bit;
 		updateInfo:     in  bit;
 		ciL2Ready       in  bit;
 		cdL2Ready       in  bit;
@@ -29,22 +28,22 @@ entity cacheL2Path is
 		dirtyBit:       out bit := '0';
 		
 		-- I/O relacionados ao victim buffer
-		vbDataIn:       in word_vector_type(31 downto 0) := (others => word_vector_init);
-		vbAddr          in  bit_vector(63 downto 0);
+		vbDataIn:       in word_vector_type(1 downto 0) := (others => word_vector_init);
+		vbAddr          in  bit_vector(9 downto 0);
 		dirtyData       in  bit;
 
 		-- I/O relacionados ao cache de dados
-		cdAddr:          in  bit_vector(63 downto 0);
-		cdDataOut:      out word_vector_type(31 downto 0) := (others => word_vector_init);
+		cdAddr:          in  bit_vector(9 downto 0);
+		cdDataOut:      out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao cache de instruções
-		ciAddr:         in  bit_vector(63 downto 0);
-		ciDataOut:      out word_vector_type(31 downto 0) := (others => word_vector_init);
+		ciAddr:         in  bit_vector(9 downto 0);
+		ciDataOut:      out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados a Memoria princial
-        memBlockIn:     in  word_vector_type(31 downto 0);
-		memAddr:        out bit_vector(63 downto 0) := (others => '0');
-		memBlockOut:    out word_vector_type(31 downto 0) := (others => word_vector_init)
+        memBlockIn:     in  word_vector_type(1 downto 0);
+		memAddr:        out bit_vector(9 downto 0) := (others => '0');
+		memBlockOut:    out word_vector_type(1 downto 0) := (others => word_vector_init)
 
     );
 end entity cacheL2Path;
@@ -53,19 +52,19 @@ end entity cacheL2Path;
 
 architecture cacheL2Path_arch of cacheL2Path is
 
-	constant cacheSize: positive := 2**17; -- 128KBytes = ‭32.768‬ * 4 bytes (‭32.768‬ words de 32bits)
-	constant words_per_block: positive := 32;
-	constant blocoSize: positive := words_per_block * 4; --- 32 * 4 = 128Bytes
-    constant numberOfBlocks: positive := cacheSize / blocoSize; -- 1024 blocos
-	constant blocks_per_set: positive := 8; -- Associativo por conjunto de 8 blocos
-	constant number_of_sets: positive := numberOfBlocks / blocks_per_set; --  128 conjuntos
+	constant cacheSize: positive := 2**8; -- 256Bytes = 64‬ * 4 bytes (‭64‬ words de 32bits)
+	constant words_per_block: positive := 2;
+	constant blocoSize: positive := words_per_block * 4; --- 2 * 4 = 8 Bytes
+	constant numberOfBlocks: positive := cacheSize / blocoSize; -- 32 blocos
+	constant blocks_per_set: positive := 2; -- Associativo por conjunto de 2 blocos
+	constant number_of_sets: positive := numberOfBlocks / blocks_per_set; --  16 conjuntos
 
 
 	--- Cada "linha" em um conjunto possui valid + dirty + tag + data
 	type block_row_type is record
          valid: bit;
 		 dirty: bit;
-         tag:   bit_vector(46 downto 0);
+         tag:   bit_vector(2 downto 0);
          data:  word_vector_type(words_per_block - 1 downto 0);
     end record block_row_type;
 
@@ -89,10 +88,10 @@ architecture cacheL2Path_arch of cacheL2Path is
 	--- definicao do cache
 	signal cache: cacheType := (others => cache_set_init);
 
-	signal addr: bit_vector(63 downto 0);
+	signal addr: bit_vector(9 downto 0);
 	signal memBlockAddr: natural;
 	signal index: natural;
-	signal tag: bit_vector(46 downto 0);
+	signal tag: bit_vector(2 downto 0);
 	signal set_index: natural;
 	signal hitSignal: bit; --- sinal interno utilizado para poder usar o hit na logica do set_index
 
@@ -106,39 +105,21 @@ begin
 	
 
 	-- obtem campos do cache a partir do endere�o de entrada
-	memBlockAddr <= to_integer(unsigned(addr(63 downto 7)));
+	memBlockAddr <= to_integer(unsigned(addr(9 downto 3)));
 	index 		 <= memBlockAddr mod number_of_sets;
-	tag 		 <= cpuAddr(63 downto 14);
-	wordOffset 	 <= to_integer(unsigned(cpuAddr(6 downto 2)));
+	tag 		 <= cpuAddr(9 downto 7);
 
 	-- Logica que define o index dentro do conjunto em caso de hit ou nao.
 	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco
 	set_index <= 0 when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
 						(hitSignal = '0' and cache(index).set(0).valid = '0') else
 				 1 when (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) or
-						(hitSignal = '0' and cache(index).set(1).valid = '0') else
-				 2 when (cache(index).set(2).valid = '1' and cache(index).set(2).tag = tag) or
-						(hitSignal = '0' and cache(index).set(0).valid = '0') else
-				 3 when (cache(index).set(3).valid = '1' and cache(index).set(3).tag = tag) or
-						(hitSignal = '0' and cache(index).set(0).valid = '0') else
-				 4 when (cache(index).set(4).valid = '1' and cache(index).set(4).tag = tag) or
-						(hitSignal = '0' and cache(index).set(0).valid = '0') else
-				 5 when (cache(index).set(5).valid = '1' and cache(index).set(5).tag = tag) or
-						(hitSignal = '0' and cache(index).set(5).valid = '0') else
-				 6 when (cache(index).set(6).valid = '1' and cache(index).set(6).tag = tag) or
-	                    (hitSignal = '0' and cache(index).set(6).valid = '0') else
-    			 7 when (cache(index).set(7).valid = '1' and cache(index).set(7).tag = tag) or
-			            (hitSignal = '0' and cache(index).set(7).valid = '0') else 0;
+						(hitSignal = '0' and cache(index).set(1).valid = '0') else '0';
 
-	-- oito (8 blocos por conjunto) comparadores em paralelo para definir o hit
+	-- dois (2 blocos por conjunto) comparadores em paralelo para definir o hit
 	hitSignal <= '1' when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
-					 (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) or
-					 (cache(index).set(2).valid = '1' and cache(index).set(2).tag = tag) or
-					 (cache(index).set(3).valid = '1' and cache(index).set(3).tag = tag) or
-					 (cache(index).set(4).valid = '1' and cache(index).set(4).tag = tag) or
-					 (cache(index).set(5).valid = '1' and cache(index).set(5).tag = tag) or
-					 (cache(index).set(6).valid = '1' and cache(index).set(6).tag = tag) or
-	                 (cache(index).set(7).valid = '1' and cache(index).set(7).tag = tag) else '0';
+						  (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) 
+					 else '0';
 
 	--  saidas
 
@@ -148,7 +129,7 @@ begin
 
 	dirtyBit <= cache(index).set(set_index).dirty;
 
-	memBlockOut <= cache(index).set(set_index).data;
+	memBlockOut <= cache(index).set(set_index).data after accessTime;
 
 	ciDataOut <= (cache(index).set(set_index).data after acessTime) when ciL2Ready = '1';
 
@@ -181,12 +162,6 @@ begin
 				end if;
 			end if;
 
-			-- Escreve na memoria
-			if (memWrite'event and memWrite = '1') then
-				memBlockOut <= cache(index).set(set_index).data after accessTime;
-				-- atualizou com a memória => dirty bit recebe 0
-				cache(index).set(set_index).dirty <= '0';
-			end if;
 
 		end if;
 	end process;

@@ -56,7 +56,7 @@ end entity ControlCacheL2;
 architecture ControlCacheL2_arch of ControlCacheL2 is	 	  
 							  
 	-- Definicao de estados
-    type states is (INIT, READY, REQ, ICTAG, ICTAG2, IHIT, IMISS, IMREADY, DCTAG, DCTAG2, DHIT, DMISS, DMREADY);
+    type states is (INIT, READY, REQ, ICTAG, IMISSMWRITE, IHIT, IMISS, IMREADY, ICTAG2, DCTAG, DMISSMWRITE, DHIT, DMISS, DMREADY, DCTAG2, CHECKVB, VBCDIRTY, VBWRITE, VBMWRITE);
     signal state: states := INIT; 
 
     
@@ -205,6 +205,7 @@ begin
 					else
 						state <= READY;
 					end if;
+
 				--- compare VB dirty bit
 				when VBCDIRTY =>
 					if dirtyBit = '1' then
@@ -239,9 +240,11 @@ begin
 	-- ciL2Ready
 	ciL2Ready <= '1' when state = IHIT else '0';
 	
-	-- addrCacheD
-	addrCacheD <= '1' when (state = DCTAG or state = DCTAG2 or state = DHIT or state = DMISS or state = DMREADY)
-							else '0';
+	-- addrOptions
+	addrOptions <= "01" when (state = ICTAG or state = IMISSMWRITE or state = IHIT or state = IMISS or state = IMREADY or state = ICTAG2) else
+				   "10" when (state = DCTAG or state = DMISSMWRITE or state = DHIT or state = DMISS or state = DMREADY or state = DCTAG2) else
+				   "11" when (state = CHECKVB or state = VBCDIRTY or state = VBWRITE or state = VBMWRITE) else
+				   "00";
 	
 	-- writeOptions
 	writeOptions <= "01" when (state = IMREADY or state = DMREADY) else
@@ -253,7 +256,7 @@ begin
 	         	   				  
     -- memory		
 	memEnable <= '1' when (state = IMISS or state = DMISS ) else '0';
-	memRW     <= '1' when (state = VBMWRITE or state = IMISSMWRITE) else '0';
+	memRW     <= '1' when (state = VBMWRITE or state = IMISSMWRITE or state = DMISSMWRITE)  else '0';
 	
 
 end architecture ControlCacheL2_arch;
