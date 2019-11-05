@@ -108,7 +108,7 @@ begin
 	dataPath : cacheIPath port map(
 
 		-- I/O relacionados ao controle
-		writeOptions	=> iHit,
+		writeOptions	=> iWriteOptions,
 		updateInfo		=> iUpdateInfo,
 		hit				=> iHit,
 
