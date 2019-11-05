@@ -14,29 +14,29 @@ library arm;
 use arm.types.all;
 
 
-entity MemoryL3 is
+entity MemoryL3Path is
     generic (
         accessTime: in time := 40 ns
     );
     port (
 
+		-- I/O relacionados ao controle
+		RW         in  bit;
+
 		-- I/O relacionados cache L2
-		enable:    in  bit;
-		memRw:    in  bit; --- '1' write e '0' read
-		addr:      in  bit_vector(31 downto 0);
-		dataIn:   in  word_vector_type(31 downto 0);
-		dataOut:  out word_vector_type(31 downto 0) := (others => word_vector_init);
-		memReady: out bit := '0' 
+		addr:      in  bit_vector(9 downto 0);
+		dataIn:    in  word_vector_type(1 downto 0);
+		dataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init)
         
     );
-end entity MemoryL3;
+end entity MemoryL3Path;
 
-architecture MemoryL3_arch of MemoryL3 is	 	  
+architecture MemoryL3Path_arch of MemoryL3Path is	 	  
 							  
-	constant memSize: positive := 2**18; -- 256KBytes = 65536 * 4 bytes (65536 words de 32bits)
-	constant wordsPerBlock: positive := 32;
-	constant blockSize: positive := wordsPerBlock * 4; --- 32 * 4 = 128Bytes
-    constant numberOfBlocks: positive := memSize / blockSize; -- 2048 blocos
+	constant memSize: positive := 2**10; -- 1KBytes = 256 * 4 bytes (256 words de 32bits)
+	constant wordsPerBlock: positive := 2;
+	constant blockSize: positive := wordsPerBlock * 4; --- 2 * 4 = 8 Bytes
+    constant numberOfBlocks: positive := memSize / blockSize; --  128 blocos
 		
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
 	type memRowType is record
@@ -73,29 +73,14 @@ architecture MemoryL3_arch of MemoryL3 is
 	
 begin 
 	
-	blockAddr <= to_integer(unsigned(addr(17 downto 7)));
+	blockAddr <= to_integer(unsigned(addr(9 downto 3)));
 	index <= blockAddr mod numberOfBlocks;
 	
+	-- leitura
+	dataOut <= (memory(index).data after acessTime) when RW = '0';
 
-	-- atualizacao do cache de acordo com os sinais de controle
-	process(enable)				 
-	begin
-		if (enable'event) then
-			
-			-- Memory Read Cache L2
-			if (enable = '1' and memRw = '0') then
-				dataOut   <=  memory(index).data after accessTime;
-				memReady  <=  '1' after accessTime;
-			end if;
-			
-			-- Memory Write Cache L2
-			if (enable = '1' and memRw = '1') then
-				memory(index).data <= dataIn after accessTime;  
-				memReady  <= '1' after accessTime;			
-			end if;
-			
-		end if;
-	end process;
+	-- escrita
+	memory(index).data <= (dataIn after accessTime) when RW = '1';  
 	
 	--- process para escrita no arquivo
 	
@@ -116,4 +101,4 @@ begin
 		end if;
 	end process;
 
-end architecture MemoryL3_arch;
+end architecture MemoryL3Path_arch;
