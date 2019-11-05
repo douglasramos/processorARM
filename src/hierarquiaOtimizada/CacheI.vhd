@@ -19,7 +19,7 @@ entity cacheI is
 		stall:   out bit := '0';
 		dataOut: out word_type := (others => '0');
 
-		-- I/O ao nível L2
+		-- I/O ao nivel L2
 		L2DataIn: in  word_vector_type(1 downto 0);
 		L2Ready:  in  bit;
 		L2RW:     out bit := '0';  --- '1' write e '0' read

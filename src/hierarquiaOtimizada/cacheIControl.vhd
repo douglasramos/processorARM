@@ -8,9 +8,7 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
-
+use types.all;
 
 entity cacheIControl is
     generic (
@@ -96,7 +94,7 @@ begin
 				when MISS =>
 					if valid = '1' then
 						state <= WRITEVB;
-					else 
+					else
 						if L2Ready = '1'  then
 							state <= L2;
 						else
