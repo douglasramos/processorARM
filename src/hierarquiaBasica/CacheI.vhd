@@ -17,14 +17,14 @@ entity cacheI is
 		-- I/O relacionados ao pipeline
 		clk:     in  bit;
 		cpuAddr: in  bit_vector(9 downto 0);
-      	stall:   out bit := '0';
+		stall:   out bit := '0';
+		dataOut: out word_type := (others => '0');
 
 		-- I/O ao nível L2
+		dataIn:    in  word_vector_type(1 downto 0);
 		memReady:  in  bit;
 		memRW:     out bit := '0';  --- '1' write e '0' read
       	memEnable: out bit := '0';
-      	dataOut:   out word_type := (others => '0');
-		dataIn:    in  word_vector_type(1 downto 0);
 		memAddr:   out bit_vector(9 downto 0) := (others => '0')
 	);
 end cacheI;

@@ -27,7 +27,6 @@ entity memory is
 		ciDataBlock:  out  word_vector_type(1 downto 0) := (others => word_vector_init);
 		ciMemReady:   out  bit := '0';
 
-
 		-- I/O relacionados cache de dados
 		cdEnable:    in  bit;
 		cdMemRw:     in  bit; --- '1' write e '0' read
@@ -35,7 +34,6 @@ entity memory is
 		cdDataIn:    in  word_vector_type(1 downto 0);
 		cdDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
 		cdMemReady:  out bit := '0'
-
 
     );
 end entity memory;
