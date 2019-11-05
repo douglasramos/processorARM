@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -159,7 +159,7 @@ begin
 		cdEnable      => iMemEnableD,
 		cdMemRw       => iMemRWD,
 		cdAddr        => iMemAddrD,
-		cdDataIn      => iMemDataOutD,  
+		cdDataIn      => iMemDataOutD,
 		cdDataOut     => iMemDataInD,
 		cdMemReady    => iMemReadyD
 

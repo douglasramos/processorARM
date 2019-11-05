@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -26,7 +26,7 @@ entity cacheL2Path is
 		cdL2Ready       in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
-		
+
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(1 downto 0) := (others => word_vector_init);
 		vbAddr          in  bit_vector(9 downto 0);
@@ -102,7 +102,7 @@ begin
 	addr <= ciAddr when (addrOptions = "01") else
 		    cdAddr when (addrOptions = "10") else
 			vbAddr when (addrOptions = "11");
-	
+
 
 	-- obtem campos do cache a partir do endere�o de entrada
 	memBlockAddr <= to_integer(unsigned(addr(9 downto 3)));
@@ -118,7 +118,7 @@ begin
 
 	-- dois (2 blocos por conjunto) comparadores em paralelo para definir o hit
 	hitSignal <= '1' when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
-						  (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) 
+						  (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag)
 					 else '0';
 
 	--  saidas
@@ -134,7 +134,7 @@ begin
 	ciDataOut <= (cache(index).set(set_index).data after acessTime) when ciL2Ready = '1';
 
 	cdDataOut <= (cache(index).set(set_index).data after acessTime) when cdL2Ready = '1';
-	
+
 
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions, memWrite)
@@ -157,7 +157,7 @@ begin
 
 			elsif (writeOptions = "10") then
 				cache(index).set(set_index).data(wordOffset) <= vbDataIn after accessTime;
-				if dirtyData = '1' then 
+				if dirtyData = '1' then
 					cache(index).set(set_index).dirty <= '1';
 				end if;
 			end if;

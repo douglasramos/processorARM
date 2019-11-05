@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:

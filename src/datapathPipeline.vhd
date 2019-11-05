@@ -1,12 +1,12 @@
 --------------------------------------------------------------------------------
--- PCS3412 - Organização e Arquitetura de Computadores II
+-- PCS3422 - Organizaï¿½ï¿½o e Arquitetura de Computadores II
 --
 -- Authors: Grupo A - Rafael Higa
 -- Processador ARM
 --
 -- Description:
 --		Fluxo de dados com Pipeline
--- Conteúdo:
+-- Conteï¿½do:
 --	-Entity "datapath"     : pipeline inteiro 		- linha 20
 --	-Entity "IFID"         : Buffer IF/ID			- linha 498
 --	-Entity "IDEX"    	   : Buffer ID/EX			- linha 544
@@ -24,7 +24,7 @@
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_bit.all;	
+use ieee.numeric_bit.all;
 
 
 entity datapath is
@@ -43,37 +43,37 @@ entity datapath is
     aluSrc            : in bit;
     regWrite          : in bit;
     instruction31to21 : out bit_vector(10 downto 0);
-    zero              : out bit;					  --Os dois sinais abaixo não contam na interface proposta para o monociclo, mas foram acrescentados para que fosse possível "expor saída de dados e endereço", como no enunciado do monociclo.
-	dataOut			  : out bit_vector(63 downto 0);  --Saída de dados. Valor da saída do multiplexador do estágio WB
-	IFStagePC		  : out bit_vector(63 downto 0)   --Endereço do ProgramCounter no estágio IF
+    zero              : out bit;					  --Os dois sinais abaixo nï¿½o contam na interface proposta para o monociclo, mas foram acrescentados para que fosse possï¿½vel "expor saï¿½da de dados e endereï¿½o", como no enunciado do monociclo.
+	dataOut			  : out bit_vector(63 downto 0);  --Saï¿½da de dados. Valor da saï¿½da do multiplexador do estï¿½gio WB
+	IFStagePC		  : out bit_vector(63 downto 0)   --Endereï¿½o do ProgramCounter no estï¿½gio IF
   );
 
 end entity datapath;
-architecture datapath_arch of datapath is													 
+architecture datapath_arch of datapath is
 
 --===========================================================================================
 --===========================================================================================
---Declaração de components
+--Declaraï¿½ï¿½o de components
 --===========================================================================================
 --===========================================================================================
 
 --Unidade de controle, utilizada dentro do datapath com fins de TESTE somente.
 --component controlModules is
---  port (  	  
+--  port (
 --  	 clk			   : in  bit;
 --  	 reset			   : in  bit;
 --  	 instruction31to21 : in  bit_vector(10 downto 0);
---     reg2loc 	 	   : out bit;	 
---     uncondBranch 	   : out bit;								 
---     branch		  	   : out bit;					  
---     memRead	  	   : out bit;			  
---     memToReg	  	   : out bit;	  
---     memWrite	  	   : out bit;				  
---     aluSrc		  	   : out bit;	  
---     regWrite	  	   : out bit; 
+--     reg2loc 	 	   : out bit;
+--     uncondBranch 	   : out bit;
+--     branch		  	   : out bit;
+--     memRead	  	   : out bit;
+--     memToReg	  	   : out bit;
+--     memWrite	  	   : out bit;
+--     aluSrc		  	   : out bit;
+--     regWrite	  	   : out bit;
 --	 aluCtl			   : out bit_vector(3 downto 0)
 --  );
---end component;													 
+--end component;
 
 ------------------------------------------------------------
 --------------------------- ALU ----------------------------
@@ -182,7 +182,7 @@ architecture datapath_arch of datapath is
 ---------------------- buffer IF/ID ------------------------
 
 	component IFID is
-  	port(				
+  	port(
 	  	clk					   : in  bit;
 	  	reset				   : in  bit;
   		In_currentPC 		   : in  bit_vector(63 downto 0);
@@ -205,7 +205,7 @@ architecture datapath_arch of datapath is
   		In_memToReg 			 : in  bit;
   		In_memWrite 		 	 : in  bit;
   		In_aluSrc 			 	 : in  bit;
-  		In_regWrite 			 : in  bit;				 
+  		In_regWrite 			 : in  bit;
 		In_aluCtl				 : in  bit_vector(3 downto 0);
   		In_currentPC 			 : in  bit_vector(63 downto 0);
   		In_ReadData1			 : in  bit_vector(63 downto 0);
@@ -228,7 +228,7 @@ architecture datapath_arch of datapath is
   		Out_Instruction31to21  	 : out bit_vector(10 downto 0);
   		Out_Instruction4to0	 	 : out bit_vector (4 downto 0)
   		);
-  
+
 end component;
 
 ------------------------------------------------------------
@@ -243,9 +243,9 @@ end component;
   		In_memRead 			     : in  bit;
   		In_memToReg 			 : in  bit;
   		In_memWrite 		 	 : in  bit;
-  		In_regWrite 			 : in  bit;	
+  		In_regWrite 			 : in  bit;
 		In_isCBNZ				 : in  bit;
-  		In_PcSum				 : in  bit_vector (63 downto 0);	
+  		In_PcSum				 : in  bit_vector (63 downto 0);
   		In_ZeroFlag			     : in  bit;
   		In_AluResult			 : in  bit_vector (63 downto 0);
   		In_ReadData2			 : in  bit_vector (63 downto 0);
@@ -271,29 +271,29 @@ end component;
   	port(
   	clk 		   		  : in  bit;
   	reset  	   		  	  : in  bit;
-  	In_regWrite  		  : in  bit;	 
+  	In_regWrite  		  : in  bit;
   	In_memToReg  		  : in  bit;
   	In_ReadData  		  : in  bit_vector (63 downto 0);
   	In_Address		  	  : in  bit_vector (63 downto 0);
   	In_Instruction4to0    : in  bit_vector (4 downto 0);
-  	Out_regWrite 		  : out bit;	 
+  	Out_regWrite 		  : out bit;
   	Out_memToReg 		  : out bit;
   	Out_ReadData          : out bit_vector (63 downto 0);
   	Out_Address		      : out bit_vector (63 downto 0);
   	Out_Instruction4to0   : out bit_vector (4 downto 0)
-  	);					 
+  	);
 	end component;
 
 --===========================================================================================
 --===========================================================================================
---Declaração de Signals
+--Declaraï¿½ï¿½o de Signals
 --===========================================================================================
 --===========================================================================================
 
 ------------------------------------------------------------
---Estágio IF
+--Estï¿½gio IF
 	signal PCSrc 				   : bit;
-	signal iAdd1OutSigned_64	   : bit_vector(63 downto 0);	 
+	signal iAdd1OutSigned_64	   : bit_vector(63 downto 0);
 	signal iPcIn				   : bit_vector(63 downto 0);
 	signal iPCOut  		   		   : bit_vector(63 downto 0);
 	signal iPcOutExtended		   : bit_vector(63 downto 0);
@@ -301,14 +301,14 @@ end component;
 	signal iZeroFlagAdd1		   : bit;
 	signal iInstruction			   : bit_vector(31 downto 0);
 	signal branchAdd			   : bit_vector (63 downto 0);
-	
+
 ------------------------------------------------------------
 --Buffer IF/ID
-	signal  O_IFID_Instruction 		   : bit_vector(31 downto 0);		  
-	signal  O_IFID_PcOut			   : bit_vector(63 downto 0);	
-	
+	signal  O_IFID_Instruction 		   : bit_vector(31 downto 0);
+	signal  O_IFID_PcOut			   : bit_vector(63 downto 0);
+
 ------------------------------------------------------------
---Estágio ID
+--Estï¿½gio ID
 	signal iReadRegister2		   : bit_vector(4  downto 0);
 	signal iReadData1			   : bit_vector(63 downto 0);
 	signal iReadData2			   : bit_vector(63 downto 0);
@@ -320,16 +320,16 @@ end component;
 --Buffer ID/EX
 
 	signal O_IDEX_uncondbranch, O_IDEX_branch, O_IDEX_memRead, O_IDEX_memWrite : bit;
-	signal O_IDEX_aluSrc, O_IDEX_regWrite, O_IDEX_memToReg	   				   : bit;	  
+	signal O_IDEX_aluSrc, O_IDEX_regWrite, O_IDEX_memToReg	   				   : bit;
 	signal O_IDEX_currentPC													   : bit_vector(63 downto 0);
 	signal O_IDEX_ReadData1			 										   : bit_vector(63 downto 0);
   	signal O_IDEX_ReadData2         										   : bit_vector(63 downto 0);
 	signal O_IDEX_SignExtend 												   : bit_vector(63 downto 0);
 	signal O_IDEX_Instruction31to21 									       : bit_vector(10 downto 0);
-	signal O_IDEX_Instruction4to0 											   : bit_vector(4 downto 0);	
+	signal O_IDEX_Instruction4to0 											   : bit_vector(4 downto 0);
 	signal O_IDEX_aluCtl													   : bit_vector(3 downto 0);
 ------------------------------------------------------------
---Estágio EX
+--Estï¿½gio EX
  	signal PcToAdd 			: bit_vector(63 downto 0);
 	signal iShiftleft2Out	: bit_vector(63 downto 0);
 	signal iAdd2OutSigned	: signed(63 downto 0);
@@ -337,20 +337,20 @@ end component;
 	signal iAluResultSigned	: signed(63 downto 0);
 	signal isCBNZ 			: bit;
 	signal iZeroFlagUla		: bit;
-		
+
 ------------------------------------------------------------
 --Buffer EX/MEM
 	signal Oexmem_PcSum 														: bit_vector(63 downto 0);
-	signal Oexmem_AluResult 												  	: bit_vector(63 downto 0);  
+	signal Oexmem_AluResult 												  	: bit_vector(63 downto 0);
 	signal Oexmem_Instruction4to0 												: bit_vector(4 downto 0);
 	signal Oexmem_branch, Oexmem_memRead, Oexmem_memToReg, Oexmem_memWrite 		: bit;
 	signal Oexmem_regWrite, Oexmem_isCBNZ, Oexmem_ZeroFlag, Oexmem_uncondbranch : bit;
 	signal Oexmem_ReadData2 													: bit_vector(63 downto 0);
 
 ------------------------------------------------------------
---Estágio MEM
+--Estï¿½gio MEM
 	signal iDataMemoryOut : bit_vector(63 downto 0);
-	signal ZeroBranch 	  : bit;	 
+	signal ZeroBranch 	  : bit;
 	signal rwxor		  : bit;
 
 ------------------------------------------------------------
@@ -359,9 +359,9 @@ end component;
 	signal Omemwb_regWrite, Omemwb_memToReg : bit;
 	signal Omemwb_ReadData, Omemwb_Address 	: bit_vector(63 downto 0);
 	signal Omemwb_Instruction4to0 			: bit_vector(4 downto 0);
-	
+
 ------------------------------------------------------------
---Estágio WB
+--Estï¿½gio WB
 	signal iMux4Out: bit_vector(63 downto 0);
 
 
@@ -372,102 +372,102 @@ end component;
 --===========================================================================================
 
 	--Sinais para TESTE com unidade de controle
-		--signal reg2loc,uncondBranch,branch,memRead,memToReg,memWrite,aluSrc,regWrite 	 	   : bit;	 
-		--signal aluCtl 																		   : bit_vector(3 downto 0);	
+		--signal reg2loc,uncondBranch,branch,memRead,memToReg,memWrite,aluSrc,regWrite 	 	   : bit;
+		--signal aluCtl 																		   : bit_vector(3 downto 0);
 		--signal instruction31to21UC, instruction31to21										   : bit_vector (10 downto 0);
-	 
-	begin												
-	
+
+	begin
+
 	--Unidade de controle, usada aqui somente para TESTE
 --		instruction31to21UC <= instruction31to21;
---		UCTest : controlModules port map(clock, reset, instruction31to21UC, reg2loc, uncondBranch, branch, memRead, memToReg, memWrite, aluSrc, 
+--		UCTest : controlModules port map(clock, reset, instruction31to21UC, reg2loc, uncondBranch, branch, memRead, memToReg, memWrite, aluSrc,
 --		regWrite, aluCtl);
-		
+
 -------------------------------------------------------------------------------------------------------
---Estágio IF
+--Estï¿½gio IF
 -------------------------------------------------------------------------------------------------------
 
 		iAdd1OutSigned_64 <= bit_vector(iAdd1OutSigned);
-		
+
 		branchAdd <= Oexmem_PcSum;
-		
-		
+
+
 		mux1_IF			 : mux2to1 generic map(64) port map(PCSrc, iAdd1OutSigned_64, branchAdd, iPcIn);
 
-		pc				 : reg generic map(64) port map (clock, reset, '1', iPcIn, iPCOut);												   
+		pc				 : reg generic map(64) port map (clock, reset, '1', iPcIn, iPCOut);
 		add1			 : alu port map (signed(iPcOut), signed(x"0000000000000004"), iAdd1OutSigned, "0010", iZeroFlagAdd1);
-		instructionMemory: rom port map (iPCOut, iInstruction);																 
+		instructionMemory: rom port map (iPCOut, iInstruction);
 
 -------------------------------------------------------------------------------------------------------
 --Buffer IF/ID
 -------------------------------------------------------------------------------------------------------
 
-		buffer_IFID : IFID port map(clock, reset, iPCOut, iInstruction, O_IFID_PcOut, O_IFID_Instruction);	
+		buffer_IFID : IFID port map(clock, reset, iPCOut, iInstruction, O_IFID_PcOut, O_IFID_Instruction);
 
 -------------------------------------------------------------------------------------------------------
---Estágio ID
+--Estï¿½gio ID
 -------------------------------------------------------------------------------------------------------
 
 		mux1: mux2to1 generic map(5) port map(reg2loc,  O_IFID_Instruction(20 downto 16),  O_IFID_Instruction(4 downto 0), iReadRegister2);
 		regBank: registerBank port map(clock, Omemwb_regWrite,  O_IFID_Instruction(9 downto 5), iReadRegister2, Omemwb_Instruction4to0, iMux4Out, iReadData1, iReadData2);
 		signalExtend: signExtend port map(O_IFID_Instruction, iSignalExtended);
-							   
+
 		IDInstruction31to21 <=  O_IFID_Instruction(31 downto 21);
 		IDInstruction4to0   <=  O_IFID_Instruction(4  downto  0);
-		
+
 -------------------------------------------------------------------------------------------------------
 --Buffer ID/EX
 -------------------------------------------------------------------------------------------------------
 
-		buffer_IDEX : IDEX port map(clock, reset, uncondbranch, branch, memRead, memToReg, memWrite, aluSrc, regWrite, aluCtl,  
-							O_IFID_PcOut, iReadData1, iReadData2, iSignalExtended, IDInstruction31to21, IDInstruction4to0, 
-							O_IDEX_uncondbranch, O_IDEX_branch, O_IDEX_memRead, O_IDEX_memToReg, O_IDEX_memWrite, O_IDEX_aluSrc, 
-							O_IDEX_regWrite, O_IDEX_aluCtl, O_IDEX_currentPC, O_IDEX_ReadData1, O_IDEX_ReadData2, O_IDEX_SignExtend, 
+		buffer_IDEX : IDEX port map(clock, reset, uncondbranch, branch, memRead, memToReg, memWrite, aluSrc, regWrite, aluCtl,
+							O_IFID_PcOut, iReadData1, iReadData2, iSignalExtended, IDInstruction31to21, IDInstruction4to0,
+							O_IDEX_uncondbranch, O_IDEX_branch, O_IDEX_memRead, O_IDEX_memToReg, O_IDEX_memWrite, O_IDEX_aluSrc,
+							O_IDEX_regWrite, O_IDEX_aluCtl, O_IDEX_currentPC, O_IDEX_ReadData1, O_IDEX_ReadData2, O_IDEX_SignExtend,
 							O_IDEX_Instruction31to21, O_IDEX_Instruction4to0);
-  							   
+
 -------------------------------------------------------------------------------------------------------
---Estágio EX
+--Estï¿½gio EX
 -------------------------------------------------------------------------------------------------------
 		isCBNZ <= '1' when O_IDEX_Instruction31to21(10 downto 3) = "10110101" else '0';
 
 		PcToAdd <= O_IDEX_currentPC;
-		
+
 		shift: shiftleft2 port map (O_IDEX_SignExtend,iShiftleft2Out);
 		add2: alu port map (signed(PcToAdd), signed(iShiftleft2Out), iAdd2OutSigned,"0010", open);
 		mux2: mux2to1 generic map(64) port map(O_IDEX_aluSrc, O_IDEX_ReadData2, O_IDEX_SignExtend, iMux2Out);
 		aluEx: alu port map (signed(O_IDEX_ReadData1), signed(iMux2Out), iAluResultSigned, O_IDEX_aluCtl, iZeroFlagUla);
-	
+
 -------------------------------------------------------------------------------------------------------
 --Buffer EX/MEM
 -------------------------------------------------------------------------------------------------------
-																													 	
-		buffer_EXMEM : EXMEM port map(clock, reset, O_IDEX_uncondbranch, O_IDEX_branch, O_IDEX_memRead, O_IDEX_memToReg, 
-									  O_IDEX_memWrite, O_IDEX_regWrite, isCBNZ, bit_vector(iAdd2OutSigned), iZeroFlagUla, 
-									  bit_vector(iAluResultSigned), O_IDEX_ReadData2, 
+
+		buffer_EXMEM : EXMEM port map(clock, reset, O_IDEX_uncondbranch, O_IDEX_branch, O_IDEX_memRead, O_IDEX_memToReg,
+									  O_IDEX_memWrite, O_IDEX_regWrite, isCBNZ, bit_vector(iAdd2OutSigned), iZeroFlagUla,
+									  bit_vector(iAluResultSigned), O_IDEX_ReadData2,
 								  	  O_IDEX_Instruction4to0,Oexmem_uncondbranch, Oexmem_branch, Oexmem_memRead, Oexmem_memToReg,
-								  	  Oexmem_memWrite, Oexmem_regWrite, Oexmem_isCBNZ, Oexmem_PcSum, Oexmem_ZeroFlag, Oexmem_AluResult, 
+								  	  Oexmem_memWrite, Oexmem_regWrite, Oexmem_isCBNZ, Oexmem_PcSum, Oexmem_ZeroFlag, Oexmem_AluResult,
 								  	  Oexmem_ReadData2,	Oexmem_Instruction4to0
 								  	  );
 
 -------------------------------------------------------------------------------------------------------
---Estágio MEM
+--Estï¿½gio MEM
 -------------------------------------------------------------------------------------------------------
 		rwxor <= Oexmem_memWrite xor Oexmem_memRead;
 		dataMemory: ram port map(clock, rwxor, Oexmem_AluResult, Oexmem_ReadData2, iDataMemoryOut);
-	
+
 		PCSrc <= (ZeroBranch and Oexmem_branch) or Oexmem_uncondBranch;
 		ZeroBranch <= Oexmem_ZeroFlag xor Oexmem_isCBNZ;
-		
-	
+
+
 -------------------------------------------------------------------------------------------------------
 --Buffer MEM/WB
 -------------------------------------------------------------------------------------------------------
 
-		buffer_MEMWB : MEMWB port map(clock, reset, Oexmem_regWrite, Oexmem_memToReg, iDataMemoryOut, Oexmem_AluResult, Oexmem_Instruction4to0, 
+		buffer_MEMWB : MEMWB port map(clock, reset, Oexmem_regWrite, Oexmem_memToReg, iDataMemoryOut, Oexmem_AluResult, Oexmem_Instruction4to0,
 							  Omemwb_regWrite, Omemwb_memToReg, Omemwb_ReadData, Omemwb_Address, Omemwb_Instruction4to0);
-						
+
 -------------------------------------------------------------------------------------------------------
---Estágio WB
+--Estï¿½gio WB
 -------------------------------------------------------------------------------------------------------
 
 		mux4: mux2to1 generic map(64) port map(Omemwb_memToReg, Omemwb_Address, Omemwb_ReadData, iMux4Out);
@@ -479,9 +479,9 @@ end component;
 --- Saidas
 	instruction31to21 <= IDInstruction31to21;
 	zero 			  <= ZeroBranch;
-	dataOut 		  <= iMux4Out;	 
+	dataOut 		  <= iMux4Out;
 	IFStagePC 		  <= iPCOut;
-	
+
 
 end datapath_arch;
 
@@ -496,7 +496,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_bit.all;
 
 entity IFID is
-  port(				
+  port(
   	clk					   : in  bit;
   	reset				   : in  bit;
   	In_currentPC 		   : in  bit_vector(63 downto 0);
@@ -523,11 +523,11 @@ component reg is
 end component;
 
 
-begin 
-	
+begin
+
 reg1 : reg generic map(64) port map(clk, reset, '1', In_currentPC, Out_currentPC);
 reg2 : reg port map(clk, reset, '1', In_fetchedInstruction, Out_fetchedInstruction);
-	
+
 end IFIDArchi;
 
 
@@ -574,7 +574,7 @@ entity IDEX is
   Out_Instruction31to21  : out bit_vector(10 downto 0);
   Out_Instruction4to0	 : out bit_vector (4 downto 0)
   );
-  
+
 end entity IDEX;
 
 architecture IDEXArchi of IDEX is
@@ -593,10 +593,10 @@ component reg is
 end component;
 
 signal In_controlSignals : bit_vector(6 downto 0);
-signal Out_controlSignals : bit_vector(6 downto 0);								
+signal Out_controlSignals : bit_vector(6 downto 0);
 
 
-begin																								  	
+begin
 
 	reg1 : reg generic map(7)  port map(clk, reset, '1', In_controlSignals,    Out_controlSignals);
 	reg2 : reg generic map(4)  port map(clk, reset, '1', In_aluCtl,            Out_aluCtl);
@@ -621,7 +621,7 @@ begin
 	Out_memWrite 		 <= Out_controlSignals(4);
 	Out_aluSrc 		     <= Out_controlSignals(5);
 	Out_regWrite		 <= Out_controlSignals(6);
-	
+
 end IDEXArchi;
 
 --------------------------------------------------------------------------------------------------------------------EXMEM Buffer
@@ -645,7 +645,7 @@ entity EXMEM is
   In_memWrite 		 	 : in  bit;
   In_regWrite 			 : in  bit;
   In_isCBNZ				 : in  bit;
-  In_PcSum				 : in  bit_vector (63 downto 0);	
+  In_PcSum				 : in  bit_vector (63 downto 0);
   In_ZeroFlag			 : in  bit;
   In_AluResult			 : in  bit_vector (63 downto 0);
   In_ReadData2			 : in  bit_vector (63 downto 0);
@@ -663,9 +663,9 @@ entity EXMEM is
   Out_ReadData2			 : out bit_vector (63 downto 0);
   Out_Instruction4to0    : out bit_vector(4 downto 0)
   );
-  
-  									  
-  
+
+
+
 
 end entity EXMEM;
 
@@ -686,14 +686,14 @@ end component;
 signal In_controlSignals : bit_vector(7 downto 0);
 signal Out_controlSignals : bit_vector(7 downto 0);
 begin
-	
-	reg1 : reg generic map(8)  port map(clk, reset, '1', In_controlSignals, Out_controlSignals);	
-	reg2 : reg generic map(64) port map(clk, reset, '1', In_PcSum          , Out_PcSum);	
-  	reg3 : reg generic map(64) port map(clk, reset, '1', In_AluResult      , Out_AluResult);	
-	reg4 : reg generic map(64) port map(clk, reset, '1', In_ReadData2      , Out_ReadData2);	
-	reg5 : reg generic map(5)  port map(clk, reset, '1', In_Instruction4to0, Out_Instruction4to0);	
-  	
-	
+
+	reg1 : reg generic map(8)  port map(clk, reset, '1', In_controlSignals, Out_controlSignals);
+	reg2 : reg generic map(64) port map(clk, reset, '1', In_PcSum          , Out_PcSum);
+  	reg3 : reg generic map(64) port map(clk, reset, '1', In_AluResult      , Out_AluResult);
+	reg4 : reg generic map(64) port map(clk, reset, '1', In_ReadData2      , Out_ReadData2);
+	reg5 : reg generic map(5)  port map(clk, reset, '1', In_Instruction4to0, Out_Instruction4to0);
+
+
 	In_controlSignals(0) <= In_uncondbranch;
 	In_controlSignals(1) <= In_branch;
 	In_controlSignals(2) <= In_memRead;
@@ -702,7 +702,7 @@ begin
 	In_controlSignals(5) <= In_regWrite;
 	In_controlSignals(6) <= In_isCBNZ;
 	In_controlSignals(7) <= In_ZeroFlag;
-	
+
 	Out_uncondbranch <= Out_controlSignals(0);
 	Out_branch       <= Out_controlSignals(1);
 	Out_memRead		 <= Out_controlSignals(2);
@@ -711,7 +711,7 @@ begin
 	Out_regWrite	 <= Out_controlSignals(5);
 	Out_isCBNZ		 <= Out_controlSignals(6);
 	Out_ZeroFlag	 <= Out_controlSignals(7);
-	
+
 end EXMEMArchi;
 
 --------------------------------------------------------------------------------------------------------------------MEMWB Buffer
@@ -728,17 +728,17 @@ entity MEMWB is
   port(
   clk 		   		  : in bit;
   reset  	   		  : in bit;
-  In_regWrite  		  : in bit;	 
+  In_regWrite  		  : in bit;
   In_memToReg  		  : in bit;
   In_ReadData  		  : in bit_vector (63 downto 0);
   In_Address		  : in bit_vector (63 downto 0);
   In_Instruction4to0  : in bit_vector (4 downto 0);
-  Out_regWrite 		  : out bit;	 
+  Out_regWrite 		  : out bit;
   Out_memToReg 		  : out bit;
   Out_ReadData        : out bit_vector (63 downto 0);
   Out_Address		  : out bit_vector (63 downto 0);
   Out_Instruction4to0 : out bit_vector (4 downto 0)
-  );					 
+  );
 
 end entity MEMWB;
 
@@ -759,23 +759,23 @@ component reg is
 end component;
 
 signal In_controlSignals  : bit_vector(1 downto 0);
-signal Out_controlSignals : bit_vector(1 downto 0);	 
+signal Out_controlSignals : bit_vector(1 downto 0);
 
 
 begin
-	
-	
+
+
 	reg1 : reg generic map(2)  port map(clk, reset, '1', In_controlSignals , Out_controlSignals);
 	reg2 : reg generic map(64) port map(clk, reset, '1', In_ReadData	   , Out_ReadData);
 	reg3 : reg generic map(64) port map(clk, reset, '1', In_Address		   , Out_Address);
 	reg4 : reg generic map(5)  port map(clk, reset, '1', In_Instruction4to0, Out_Instruction4to0);
-	
+
 	In_controlSignals(0) <= In_regwrite;
 	In_controlSignals(1) <= In_memToReg;
 	Out_regwrite <= Out_controlSignals(0);
-	Out_memToReg <= Out_controlSignals(1);		 
-	
-	
+	Out_memToReg <= Out_controlSignals(1);
+
+
 end MEMWBArchi;
 
 -----------------------------------------------------------------------------------------------------------------register Bank

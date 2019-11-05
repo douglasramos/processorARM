@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -26,7 +26,7 @@ entity MemoryL3Control is
 		-- I/O relacionados cache L2
 		enable:    in  bit;
         memRw:     in  bit; --- '1' write e '0' read
-        memReady:  out bit := '0' 
+        memReady:  out bit := '0'
 
     );
 end entity MemoryL3Control;
@@ -55,7 +55,7 @@ begin
                     elsif (enable = '1' and memRw = '1') then
                         state < = WRITE;
                     end if;
-            
+
                 --- estadao Read
                 when READ =>
                     state <= READY after acesstime;
@@ -73,10 +73,10 @@ begin
 	end process;
 
 	--- saidas ---
-    
+
     RW <= '0' when (state = READ) else
           '1' when (state = WRITE);
-    
+
     memReady <= '0' when (state = READ or state = WRITE) else '1';
 
 

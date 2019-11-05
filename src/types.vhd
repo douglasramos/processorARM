@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -18,7 +18,7 @@ package types is
 	constant word_vector_instruction2: word_type := x"20230005";
 	constant word_vector_instruction3: word_type := x"00430820";
 	constant word_vector_instruction4: word_type := x"00242820";
-	
+
 	constant j_10:            word_type := x"02001016";
 	constant jal_20:          word_type := x"03001016";
 	constant add_r1_r2_r3:    word_type := x"02119020";
@@ -42,7 +42,7 @@ package types is
 	constant beq_r1_r2_25:    word_type := x"12110019";
 	constant add_r6_r7_r8:    word_type := x"02B6B820";
 	constant add_r9_r10_r11:  word_type := x"0319D020";
-	
+
 
 	constant word_vector_test: word_type := (others => '1');
 

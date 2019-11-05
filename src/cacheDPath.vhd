@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -34,11 +34,11 @@ entity cacheDPath is
 		readAddressDataTag 	 : out bit_vector(49 downto 0);
 		readAddressDataIndex : out bit_vector(6 downto 0);
 		-- I/O relacionados ao Victim Buffer
-		evictedBlockData     : out word_vector_type(31 downto 0);  
-		evictedBlockTag	     : out bit_vector(49 downto 0);		 
+		evictedBlockData     : out word_vector_type(31 downto 0);
+		evictedBlockTag	     : out bit_vector(49 downto 0);
 		evictedBlockIndex    : out bit_vector(6 downto 0)
-		--isDequeueAddr_Data   : out bit 	  --vai indicar se tem bloco despejado. Se o set não estava cheio, não precisa despejar um bloco. Apesar de que ainda é interessante dar um fetch no victim buffer!
-		
+		--isDequeueAddr_Data   : out bit 	  --vai indicar se tem bloco despejado. Se o set nï¿½o estava cheio, nï¿½o precisa despejar um bloco. Apesar de que ainda ï¿½ interessante dar um fetch no victim buffer!
+
     );
 end entity cacheDPath;
 
@@ -67,7 +67,7 @@ architecture cacheDPath_arch of cacheDPath is
 										         tag =>   (others => '0'),
 											     data =>  (others => word_vector_init));
 
-	
+
     --- Cache eh formado por um array de conjuntos
 	type set_vector_type is record
 		 set: set_type;
@@ -115,9 +115,9 @@ begin
 	dirtyBit <= cache(index).set(set_index).dirty;
 
 	L2BlockOut <= cache(index).set(set_index).data;
-	
-	evictedBlockData 	 <= cache(index).set(set_index).data; 
-	evictedBlockIndex 	 <= cpuAddr(13 downto 7);   --mesmo que cpuaddr responda a um bloco que está FORA do set, ainda se trata do mesmo index, então não tem problema aqui! Acho...
+
+	evictedBlockData 	 <= cache(index).set(set_index).data;
+	evictedBlockIndex 	 <= cpuAddr(13 downto 7);   --mesmo que cpuaddr responda a um bloco que estï¿½ FORA do set, ainda se trata do mesmo index, entï¿½o nï¿½o tem problema aqui! Acho...
 	evictedBlockTag   	 <= cache(index).set(set_index).tag;
 	readAddressDataTag 	 <= cpuAddr(63 downto 14);
 	readAddressDataIndex <= cpuAddr(13 downto 7);

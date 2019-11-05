@@ -1,4 +1,4 @@
--- PCS3412 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organizacao e Arquitetura de Computadores II
 -- PicoMIPS
 --
 -- Description:
@@ -27,24 +27,24 @@ entity MemoryL3Path is
 		addr:      in  bit_vector(9 downto 0);
 		dataIn:    in  word_vector_type(1 downto 0);
 		dataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init)
-        
+
     );
 end entity MemoryL3Path;
 
-architecture MemoryL3Path_arch of MemoryL3Path is	 	  
-							  
+architecture MemoryL3Path_arch of MemoryL3Path is
+
 	constant memSize: positive := 2**10; -- 1KBytes = 256 * 4 bytes (256 words de 32bits)
 	constant wordsPerBlock: positive := 2;
 	constant blockSize: positive := wordsPerBlock * 4; --- 2 * 4 = 8 Bytes
     constant numberOfBlocks: positive := memSize / blockSize; --  128 blocos
-		
+
 	--- Cada "linha" na memoria possui data, que corresponde a um bloco de dados
 	type memRowType is record
         data:  word_vector_type(wordsPerBlock - 1 downto 0);
     end record memRowType;
 
 	type memType is array (numberOfBlocks - 1 downto 0) of memRowType;
-	
+
 	--- leitura do arquivo memory.dat
 
 	impure function readFile(fileName : in string) return memType is
@@ -63,27 +63,27 @@ architecture MemoryL3Path_arch of MemoryL3Path is
 			file_close(F);
 			return tempMem;
 		end;
-		
+
 	--- inicializa memoria
 	signal memory : memType := readFile("memory.dat");
 
 	--- Demais sinais internos
 	signal blockAddr: natural;
 	signal index: natural;
-	
-begin 
-	
+
+begin
+
 	blockAddr <= to_integer(unsigned(addr(9 downto 3)));
 	index <= blockAddr mod numberOfBlocks;
-	
+
 	-- leitura
 	dataOut <= (memory(index).data after acessTime) when RW = '0';
 
 	-- escrita
-	memory(index).data <= (dataIn after accessTime) when RW = '1';  
-	
+	memory(index).data <= (dataIn after accessTime) when RW = '1';
+
 	--- process para escrita no arquivo
-	
+
 	process(memory)
 	file     F  : text open write_mode is "memory.dat";
 	variable L    : line;

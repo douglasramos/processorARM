@@ -1,4 +1,4 @@
--- PCS3412 - Organização e Arquitetura de Computadores II
+-- PCS3422 - Organizaï¿½ï¿½o e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -7,7 +7,7 @@
 library ieee;
 use ieee.numeric_bit.all;
 
--- importa os types do projeto											--Alterações importantes para o Exclusion
+-- importa os types do projeto											--Alteraï¿½ï¿½es importantes para o Exclusion
 													   					--Linhas 35, 36
 use types.all;															--Linhas 120, 121, 122
 
@@ -32,11 +32,11 @@ entity cacheDPath is
         memBlocoData		 : in  word_vector_type(31 downto 0);    --na verdade, esse bloco novo pode ser tanto vindo do L2 como do victim buffer!
 		L2BlockOut			 : out word_vector_type(31 downto 0) := (others => word_vector_init);
 		-- I/O relacionados ao Victim Buffer
-		evictedBlockData     : out word_vector_type(31 downto 0);  
+		evictedBlockData     : out word_vector_type(31 downto 0);
 		evictedBlockAddr	 : out bit_vector(63 downto 0);
 		readBlockAddr   	 : out bit_vector(63 downto 0)           --goes to L2 & VictimBuffer
-		--isDequeueAddr_Data   : out bit 	  --vai indicar se tem bloco despejado. Se o set não estava cheio, não precisa despejar um bloco. Apesar de que ainda é interessante dar um fetch no victim buffer!
-		
+		--isDequeueAddr_Data   : out bit 	  --vai indicar se tem bloco despejado. Se o set nï¿½o estava cheio, nï¿½o precisa despejar um bloco. Apesar de que ainda ï¿½ interessante dar um fetch no victim buffer!
+
     );
 end entity cacheDPath;
 
@@ -65,7 +65,7 @@ architecture cacheDPath_arch of cacheDPath is
 										         tag =>   (others => '0'),
 											     data =>  (others => word_vector_init));
 
-	
+
     --- Cache eh formado por um array de conjuntos
 	type set_vector_type is record
 		 set: set_type;
@@ -113,16 +113,16 @@ begin
 	dirtyBit <= cache(index).set(set_index).dirty;
 
 	L2BlockOut <= cache(index).set(set_index).data;
-	
-	evictedBlockData 	 <= cache(index).set(set_index).data; 
-	
-						   
+
+	evictedBlockData 	 <= cache(index).set(set_index).data;
+
+
 	evictedBlockAddr(63 downto 14) <= cache(index).set(set_index).tag;
 	evictedBlockAddr(13 downto 7)  <= cpuAddr(13 downto 7);
 	evictedBlockAddr(6  downto 0)  <= "0000000";
-	
-	readBlockAddr <= cpuAddr;		   
-	
+
+	readBlockAddr <= cpuAddr;
+
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions, memWrite)
 	begin
