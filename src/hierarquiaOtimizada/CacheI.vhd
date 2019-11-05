@@ -137,7 +137,10 @@ begin
 
         -- I/O relacionados a Memoria princial
         dataIn	        => L2DataIn,
-		L2Addr			=> L2Addr
+		L2Addr			=> L2Addr,
+
+		evictedBlockData => evictedBlockData,
+        evictedBlockAddr => evictedBlockAddr
     );
 
 end architecture;
