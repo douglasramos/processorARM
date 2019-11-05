@@ -36,14 +36,14 @@ entity cacheIControl is
 
 		-- I/O relacionados ao victim buffer
 		isVBFull:   in  bit;
-		vbEnable:   out bit
+        vbEnable:   out bit
     );
 end entity cacheIControl;
 
 architecture cacheIControl_arch of cacheIControl is
 
 	-- Definicao de estados
-    type states is (INIT, READY, CTAG, CTAG2, HIT, MISS, L2, );
+    type states is (INIT, READY, CTAG, CTAG2, HIT, MISS, L2, WRITEVB);
     signal state: states := INIT;
 
 	-- debug
@@ -95,8 +95,8 @@ begin
 				--- estado Miss
 				when MISS =>
 					if valid = '1' then
-						state <= WRITEVB
-					else
+						state <= WRITEVB;
+					else 
 						if L2Ready = '1'  then
 							state <= L2;
 						else
@@ -106,7 +106,7 @@ begin
 
 				--- estado Write para o VB
 				when WRITEVB =>
-					if isFull = '0' then
+					if isVBFull = '0' then
 						state <= WRITEVB;
 					end if;
 

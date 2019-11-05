@@ -30,7 +30,7 @@ entity cacheIPath is
 
         -- I/O relacionados ao L2
         dataIn:  in  word_vector_type(1 downto 0);
-		memAddr: out bit_vector(9 downto 0) := (others => '0');
+		L2Addr:  out bit_vector(9 downto 0) := (others => '0');
 
 		-- I/O relacionados ao victim buffer
 		evictedBlockData:     out word_vector_type(1 downto 0);
@@ -105,7 +105,7 @@ begin
 	hit <= hitSignal;
 	valid <= cache(index).set(setIndex).valid;
 	dataOut <= cache(index).set(setIndex).data(wordOffset);
-	memAddr <= cpuAddr;
+	L2Addr <= cpuAddr;
 
 	-- monta address e data do bloco a ser mandado para o VB
 	evictedBlockData <= cache(index).set(setIndex).data;   -- posicao index do addr que entra no index do bloco que sai tambem
