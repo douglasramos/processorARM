@@ -1,4 +1,4 @@
--- PCS3422 - Organizacao e Arquitetura de Computadores II
+-- PCS3412 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -14,86 +14,86 @@ use arm.types.all;
 
 entity ControlCacheL2 is
     generic (
-        accessTime: in time := 5 ns
+        accessTime: in time := 50 ns
     );
-    port (
-
+    port (			  
+        
         -- I/O pipeline?
-        clk            in  bit;
+        clk:           in  bit;
 
 		-- I/O relacionado ao victim buffer
-		vbDataIn:      in word_vector_type(31 downto 0) := (others => word_vector_init);
-		vbAddr:        in  bit_vector(63 downto 0);
-		vbReady        out bit;
+		vbDataIn:      in word_vector_type(1 downto 0) := (others => word_vector_init);
+		vbAddr:        in  bit_vector(9 downto 0);
+		vbReady:       out bit;
 
 		-- I/O relacionado ao cache de dados
-		cdRW           in  bit;
-		cdEnable       in  bit;
-		cdL2Ready      out bit := '0';
+		cdRW:          in  bit;
+		cdEnable:      in  bit;
+		cdL2Ready:     out bit := '0';
 
 		-- I/O relacionado ao cache de instruções
-		ciRW           in  bit;
-		ciEnable       in  bit;
-		ciL2Ready      out bit := '0';
+		ciRW:          in  bit;
+		ciEnable:      in  bit;
+		ciL2Ready:     out bit := '0';
 
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
-		addrOptions    out bit_vector(1 downto 0) := "00";
-		ciReady        out bit := '0';
-		cdReady        out bit := '0';
+		addrOptions:   out bit_vector(1 downto 0) := "00";
+		ciReady:       out bit := '0';
+		cdReady:       out bit := '0';
 		updateInfo:    out bit := '0';
-
+		
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
 		memRW:         out bit := '0';  --- '1' write e '0' read
         memEnable:     out bit := '0'
-
+        
     );
 end entity ControlCacheL2;
 
-architecture ControlCacheL2_arch of ControlCacheL2 is
-
+architecture ControlCacheL2_arch of ControlCacheL2 is	 	  
+							  
 	-- Definicao de estados
     type states is (INIT, READY, REQ, ICTAG, IMISSMWRITE, IHIT, IMISS, IMREADY, ICTAG2, DCTAG, DMISSMWRITE, DHIT, DMISS, DMREADY, DCTAG2, CHECKVB, VBCDIRTY, VBWRITE, VBMWRITE);
-    signal state: states := INIT;
+    signal state: states := INIT; 
 
-
-begin
+    
+begin 
 
 
 	process (clk, cdEnable, ciEnable, vbDataIn, vbAddr)
-
+	
 	-- detecta alteração na saída do victim buffer
 	variable vbChange : natural := 0;
-
+	
 	begin
-		-- Fluxo:
-		--	- Primeiro verifica se ocorreu alguma alteração na interface com Victim Buffer (CHECKVB), se mudou tem dados a ser persistido em L2
-		--	- Feito isso analisa se ocorreu alguma socilitação de dado por parte dos caches L1 (READY).
-		--	- Cache de instrução tem prioridade na busca pelo dado (REQ).
-		--	- No estado de Hit do CacheI (IHIT) se não houver socilitação da CacheD, a maquina de estados volta para CHECKVB, se houver socilitação faza busca.
-		--	- Ao fim da analisa da socilitacação, a maquina de estados volta obrigatoriamente para (CHECKVB)
-
-		--- se ocorreu alguma mudança no IO do victim buffer, ativa a variavel vbChange
+		-- Fluxo: 
+		--	- Primeiro verifica se ocorreu alguma alteracao na interface com Victim Buffer (CHECKVB), se mudou tem dados a ser persistido em L2
+		--	- Feito isso analisa se ocorreu alguma socilitacao de dado por parte dos caches L1 (READY).
+		--	- Cache de instrucao tem prioridade na busca pelo dado (REQ).
+		--	- No estado de Hit do CacheI (IHIT) se não houver socilitacao da CacheD, a maquina de estados volta para CHECKVB, se houver socilitação faza busca.
+		--	- Ao fim da analisa da socilitacacao, a maquina de estados volta obrigatoriamente para (CHECKVB)
+		
+		--- se ocorreu alguma mudanca no IO do victim buffer, ativa a variavel vbChange
 		if (vbDataIn'event or vbAddr'event) then
 			vbChange := 1;
 		end if;
 
 		if (rising_edge(clk) or cdEnable'event or ciEnable'event) then
-			case state is
+			case state is 
 				--- estado inicial
 				when INIT =>
-					state <= READY;
-
+					state <= READY;	
+				
 				--- estado Ready
 				when READY =>
-                    if (ciEnable = '1' or cdEnable = '1' or vbChange = '1') then
+                    if (ciEnable = '1' or cdEnable = '1' or vbChange = 1) then
                         state <= REQ;
 					end if;
-
-				--- estado Requisições
+	
+				--- estado Requisicoes
 				when REQ =>
 					if ciEnable = '1' then
 						state <= ICTAG;
@@ -102,62 +102,62 @@ begin
 					else
 						state <= CHECKVB;
 					end if;
-
-				--- compare tag para instruções
+				
+				--- compare tag para instrucoes
 				when ICTAG =>
 					if hitSignal = '1' then
 						state <= IHIT;
 					-- MISS
 					elsif hitSignal = '0' then
-						-- primeiro analisa se bloco em questão é "sujo"
+						-- primeiro analisa se bloco em questão e "sujo"
 						if dirtyBit = '1' then
 							state <= IMISSMWRITE;	-- precisa colocar dado atual na Memoria primeiro
 						elsif dirtyBit = '0' then
 							state <= IMISS; -- pode tratar miss normalmente
-						end if;
+						end if;	
 					end if;
-
+				
 				--- estado Instruction Miss Memory Write
 				when IMISSMWRITE =>
 					if memReady = '1' then
-						state <= IMISS; -- se já salvou na memória, pode continuar miss
+						state <= IMISS; -- se já salvou na memoria, pode continuar miss
 					elsif memReady = '0' then
-						state <= IMISSMWRITE; -- espera salvar na memória
+						state <= IMISSMWRITE; -- espera salvar na memoria
 					end if;
 
 				--- estado Hit instrução
 				when IHIT =>
-					if cdEnable=1 then
+					if cdEnable = '1' then
 						state <= DCTAG;
 					else
 						state <= CHECKVB;
 					end if;
-
+				
 				--- estado Miss Instrução
 				when IMISS =>
 					if memReady = '1' then
 						state <= IMREADY;
 					end if;
-
+				
 				--- estado Instrução Memory Ready
 				when IMREADY =>
 					state <= ICTAG2;
-
+				
 				--- compare tag 2 para instrução
 				when ICTAG2 =>
-					if hitSignal = '1' then
+					if hitSignal = '1' then 
 					   state <= IHIT;
 
 					else -- Miss
-						state <= IMISS;
+						state <= IMISS;								
 					end if;
-
+					
 				--- compare tag para dados
 				when DCTAG =>
 					if hitSignal = '1' then
 						state <= DHIT;
 					elsif hitSignal = '0' then
-						-- primeiro analisa se bloco em questão é "sujo"
+						-- primeiro analisa se bloco em questão e "sujo"
 						if dirtyBit = '1' then
 							state <= DMISSMWRITE;	-- precisa colocar dado atual na Memoria primeiro
 						elsif dirtyBit = '0' then
@@ -168,34 +168,34 @@ begin
 				--- estado Instruction Miss Memory Write
 				when DMISSMWRITE =>
 					if memReady = '1' then
-						state <= DMISS; -- se já salvou na memória, pode continuar miss
+						state <= DMISS; -- se ja salvou na memoria, pode continuar miss
 					elsif memReady = '0' then
-						state <= DMISSMWRITE; -- espera salvar na memória
+						state <= DMISSMWRITE; -- espera salvar na memoria
 					end if;
 
 				--- estado Hit dados
 				when DHIT =>
 					state <= CHECKVB;
-
+				
 				--- estado Miss dados
 				when DMISS =>
 					if memReady = '1' then
 						state <= DMREADY;
                     end if;
-
+				
 				--- estado dados Memory Ready
 				when DMREADY =>
 					state <= DCTAG2;
-
+				
 				--- compare tag 2 para dados
 				when DCTAG2 =>
-					if hitSignal = '1' then
+					if hitSignal = '1' then 
 					   state <= DHIT;
 
 					else -- Miss
-						state <= DMISS;
-					end if;
-
+						state <= DMISS;	
+					end if;							
+				
 
 				--- check Victim Buffer
 				when CHECKVB =>
@@ -213,11 +213,11 @@ begin
 					elsif dirtyBit = '0' then
 							state <= VBWRITE; -- pode ja escrever no cache
 					end if;
-
+				
 				--- estado VB Write
 				when VBWRITE =>
 				   state <= READY;
-
+				
 				--- estado VB Memory Write
 				when VBMWRITE =>
 					if memReady = '1' then
@@ -231,7 +231,7 @@ begin
 			end case;
 		end if;
 	end process;
-
+	
 	--- saidas ---
 
 	-- cdL2Ready
@@ -239,24 +239,24 @@ begin
 
 	-- ciL2Ready
 	ciL2Ready <= '1' when state = IHIT else '0';
-
+	
 	-- addrOptions
 	addrOptions <= "01" when (state = ICTAG or state = IMISSMWRITE or state = IHIT or state = IMISS or state = IMREADY or state = ICTAG2) else
 				   "10" when (state = DCTAG or state = DMISSMWRITE or state = DHIT or state = DMISS or state = DMREADY or state = DCTAG2) else
 				   "11" when (state = CHECKVB or state = VBCDIRTY or state = VBWRITE or state = VBMWRITE) else
 				   "00";
-
+	
 	-- writeOptions
 	writeOptions <= "01" when (state = IMREADY or state = DMREADY) else
-        	        "10" when state = VBWRITE else
+        	        "10" when state = VBWRITE else 
 		            "00";
-
+	         		 
 	-- updateInfo
-	updateInfo <= '1' when (state = IMREADY or state = DMREADY) else '0';
-
-    -- memory
-	memEnable <= '1' when (state = IMISS or state = DMISS ) else '0';
+	updateInfo <= '1' when (state = IMREADY or state = DMREADY or state = VBWRITE) else '0';
+	         	   				  
+    -- memory		
+	memEnable <= '1' when (state = IMISS or state = DMISS or state = IMISSMWRITE or state = DMISSMWRITE) else '0';
 	memRW     <= '1' when (state = VBMWRITE or state = IMISSMWRITE or state = DMISSMWRITE)  else '0';
-
+	
 
 end architecture ControlCacheL2_arch;

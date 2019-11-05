@@ -1,8 +1,8 @@
--- PCS3422 - Organizacao e Arquitetura de Computadores II
+-- PCS3412 - Organizacao e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
---     Memória (Unidade de controle)
+--     Memoria (Unidade de controle)
 
 library ieee;
 use ieee.numeric_bit.all;
@@ -14,19 +14,21 @@ use arm.types.all;
 
 entity MemoryL3Control is
     generic (
-        accessTime: in time := 40 ns
+        accessTime: in time := 200 ns
     );
     port (
 
-        clk        in  bit;
+        clk:        in  bit;
 
-        -- I/O relacionados a memória
-        RW         out bit := '0';
+        -- I/O relacionados a memoria
+        cRead:     in  bit;
+		cWrite:    in  bit;
+        RW:        out bit := '0';
 
 		-- I/O relacionados cache L2
 		enable:    in  bit;
         memRw:     in  bit; --- '1' write e '0' read
-        memReady:  out bit := '0'
+        memReady:  out bit := '0' 
 
     );
 end entity MemoryL3Control;
@@ -53,16 +55,20 @@ begin
                     if (enable = '1' and memRw = '0') then
                         state <= READ;
                     elsif (enable = '1' and memRw = '1') then
-                        state < = WRITE;
+                        state <= WRITE;
                     end if;
-
+            
                 --- estadao Read
                 when READ =>
-                    state <= READY after acesstime;
+                    if cRead = '1' then
+                        state <= READY;
+                    end if;
 
                 --- estado Write
                 when WRITE =>
-                    state <= READY after acesstime;
+                    if cWrite = '1' then
+                        state <= READY;
+                    end if;
 
 
                 when others =>
@@ -73,10 +79,10 @@ begin
 	end process;
 
 	--- saidas ---
-
+    
     RW <= '0' when (state = READ) else
           '1' when (state = WRITE);
-
+    
     memReady <= '0' when (state = READ or state = WRITE) else '1';
 
 
