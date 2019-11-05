@@ -92,7 +92,9 @@ begin
 				when MISS =>
 					if memReady = '1' then
 						state <= MEM;
-                    end if;
+                    else
+						state <= MISS;
+					end if;
 
 				--- estado Memory Ready
 				when MEM =>
