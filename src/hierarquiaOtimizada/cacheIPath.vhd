@@ -22,6 +22,7 @@ entity cacheIPath is
 		writeOptions:   in  bit;
 		updateInfo:     in  bit;
 		hit:            out bit := '0';
+		valid:          out bit := '0';
 
 		-- I/O relacionados ao IF stage
         cpuAddr: in  bit_vector(9 downto 0);
@@ -102,6 +103,7 @@ begin
 
     --  saidas
 	hit <= hitSignal;
+	valid <= cache(index).set(setIndex).valid;
 	dataOut <= cache(index).set(setIndex).data(wordOffset);
 	memAddr <= cpuAddr;
 
