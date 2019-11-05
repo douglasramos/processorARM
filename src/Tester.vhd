@@ -75,22 +75,22 @@ process(clk, stallData, stallInst)
 		variable re2Data, re2Inst 	  : real;
 		variable pm1Data, pm1Inst 	  : integer;
 		variable pm2Data, pm2Inst 	  : real;
-		variable countInst, countData : integer := 2;   --para dar dois clk's de delay após o stall, para coordenar bem com a máq. de estados!
+		--variable countInst, countData : integer := 2;   --para dar dois clk's de delay após o stall, para coordenar bem com a máq. de estados!
 		
 		
 		begin
 			if(clk'event and clk = '1') then
-				if(countData = 0 or countData = 1) then
-					countData := countData + 1;
-				elsif(falling_edge(stallData) and countData = 2) then 
-					countData := 0;
-				end if;
+				--if(countData = 0 or countData = 1) then
+				--	countData := countData + 1;
+				--elsif(falling_edge(stallData) and countData = 2) then 
+				--	countData := 0;
+				--end if;
 				
-				if(countInst = 0 or countInst = 1) then
-					countInst := countInst + 1;
-				elsif(falling_edge(stallInst) and countInst = 2) then 
-					countInst := 0;
-				end if;
+				--if(countInst = 0 or countInst = 1) then
+				--	countInst := countInst + 1;
+				--elsif(falling_edge(stallInst) and countInst = 2) then 
+				--	countInst := 0;
+				--end if;
 				
 				if(start = 0) then
 					addressDataToMemory <= startAddressData;
@@ -98,7 +98,7 @@ process(clk, stallData, stallInst)
 					start := 1;
 				
 				else
-					if(stallData = '0' and countData = 2) then
+					if(stallData = '0') then -- and countData = 2) then
 						if(cacheMode(0) = '1') then															   --Geração de ends. para cache de dados ativa!
 							if(addressMode = "00" and (not isBranchData'event) and isBranchData = '0') then	   --Endereços consecutivos
 								addressDataSum := unsigned(addressDataToMemory) + unsigned(temp);	           --end. += 4
@@ -135,7 +135,7 @@ process(clk, stallData, stallInst)
 					addressDataToMemory <= bit_vector(addressDataSum);
 					
 					
-					if(stallInst = '0' and countInst = 2) then
+					if(stallInst = '0') then -- and countInst = 2) then
 						if(cacheMode(1) = '1') then		--Geração de ends. para cache de inst ativa!
 							if(addressMode = "00" and (not isBranchInst'event) and isBranchInst = '0') then
 								addressInstSum := unsigned(addressInstToMemory) + unsigned(temp);	         --end. += 4
