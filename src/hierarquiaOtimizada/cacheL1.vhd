@@ -43,7 +43,6 @@ entity cacheL1 is
 		L2ReadyVB:             in  bit;
 		L2BlockOutVB:  	  	   out word_vector_type(1 downto 0) := (others => word_vector_init);
 		L2BlockOutAddressVB:   out bit_vector(9 downto 0) := (others => '0');
-		L2IsBlockDataOrInstVB: out bit;
 		L2BlockOutIsDirty:     out bit
 	);
 end cacheL1;
@@ -97,10 +96,11 @@ component cacheD is
         L2BlockOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao Victim Buffer
-        isVBFull:   in  bit;
-        vbEnable:   out bit;
+        isVBFull:   	  in  bit;
+        vbEnable:   	  out bit;
 		evictedBlockData: out word_vector_type(1 downto 0);
-		evictedBlockAddr: out bit_vector(9 downto 0)
+		evictedBlockAddr: out bit_vector(9 downto 0);
+		dirtyBit:   	  out bit
 
     );
 end component;
@@ -115,28 +115,29 @@ component victimBuffer is
 		queueInst		           : in  bit;
 		queueData		           : in  bit;
 		readyL2			   		   : in  bit;
-		evictedBlockData		   : in  word_vector_type(1 downto 0);		-- Um bloco, 32 words
+		evictedBlockData		   : in  word_vector_type(1 downto 0);
 		evictedBlockDataAddress	   : in  bit_vector(9 downto 0);
 		evictedBlockDataDirty	   : in  bit;
-		evictedBlockInst		   : in  word_vector_type(1 downto 0);		-- Um bloco, 32 words
+		evictedBlockInst		   : in  word_vector_type(1 downto 0);
 		evictedBlockInstAddress	   : in  bit_vector(9 downto 0);
-		evictedBlockInstDirty	   : in  bit := '0';						    -- Instrucao nao tem write!
-		blockOut  	  			   : out word_vector_type(1 downto 0);     -- Saida do buffer: um bloco
+		evictedBlockInstDirty	   : in  bit := '0';
+		blockOut  	  			   : out word_vector_type(1 downto 0);
 		blockOutAddress			   : out bit_vector(9 downto 0);
-		blockOutDataInst		   : out bit;								-- '1' if data else '0'
 		blockOutIsDirty			   : out bit
     );
 end component;
-
 
 	-- sinais internos
 	signal iVbEnableI : bit;
 	signal iEvictedBlockDataI : word_vector_type(1 downto 0);
 	signal iEvictedBlockAddrI : bit_vector(9 downto 0);
 
+
 	signal iVbEnableD : bit;
 	signal iEvictedBlockDataD : word_vector_type(1 downto 0);
 	signal iEvictedBlockAddrD : bit_vector(9 downto 0);
+	signal iDirtyBitD : bit;
+
 
 	signal iIsVBFull : bit;
 begin
@@ -183,7 +184,8 @@ begin
         isVBFull           => iIsVBFull,
         vbEnable           => iVbEnableD,
 		evictedBlockData   => iEvictedBlockDataD,
-		evictedBlockAddr   => iEvictedBlockAddrD
+		evictedBlockAddr   => iEvictedBlockAddrD,
+		dirtyBit           => iDirtyBitD
 	);
 
 	vb: victimBuffer port map (
@@ -193,14 +195,13 @@ begin
 		readyL2			   		   => L2ReadyVB,
 		evictedBlockData		   => iEvictedBlockDataD,
 		evictedBlockDataAddress	   => iEvictedBlockAddrD,
-		evictedBlockDataDirty	   => '0',
+		evictedBlockDataDirty	   => iDirtyBitD,
 		evictedBlockInst		   => iEvictedBlockDataI,
 		evictedBlockInstAddress	   => iEvictedBlockAddrI,
-		evictedBlockInstDirty	   => '0',
+		evictedBlockInstDirty	   => '0', -- instrucao nao tem dirtyBit
 		blockOut  	  			   => L2BlockOutVB,
 		blockOutAddress			   => L2BlockOutAddressVB,
-		blockOutDataInst		   => L2IsBlockDataOrInstVB,
-		blockOutIsDirty			   => L2BlockOutIsDirty
+		blockOutIsDirty		       => L2BlockOutIsDirty
     );
 
 end architecture;

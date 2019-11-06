@@ -34,7 +34,8 @@ entity cacheD is
 
         -- I/O relacionados ao Victim Buffer
 		evictedBlockData: out word_vector_type(1 downto 0);
-		evictedBlockAddr: out bit_vector(9 downto 0)
+        evictedBlockAddr: out bit_vector(9 downto 0);
+        dirtyBit        : out bit
 
     );
 end cacheD;
@@ -109,8 +110,11 @@ end component;
     signal iMemWrite: bit;
     signal iValid : bit;
 
+
 begin
 
+	dirtyBit <= iDirtyBit;
+	
 	control : cacheDControl port map(
 		-- I/O relacionados ao stage MEM
 		clk			   => clk,
