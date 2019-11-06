@@ -8,8 +8,8 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 entity cacheD is
     port(
@@ -28,7 +28,9 @@ entity cacheD is
 
 		memBlockIn:    in  word_vector_type(1 downto 0);
 		memAddr:       out bit_vector(9 downto 0) := (others => '0');
-		memBlockOut:   out word_vector_type(1 downto 0) := (others => word_vector_init)
+		memBlockOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
+		--Para testes no top level
+		state_d :	   out bit_vector(3 downto 0)
 
     );
 end cacheD;
@@ -57,7 +59,9 @@ component cacheDControl is
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
 		memRW:         out bit := '0';  --- '1' write e '0' read
-        memEnable:     out bit := '0'
+        memEnable:     out bit := '0';
+		--Para testes no top level
+		state_d :	   out bit_vector(3 downto 0)
 
     );
 end component;
@@ -112,7 +116,9 @@ begin
         -- I/O relacionados a Memoria princial
 		memReady		=> memReady,
 		memRW			=> memRW,
-      	memEnable		=> memEnable
+      	memEnable		=> memEnable,
+		--Para testes no top level
+		state_d			=> state_d
     );
 
 	dataPath : cacheDPath port map(

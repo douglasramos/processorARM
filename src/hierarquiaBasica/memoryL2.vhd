@@ -36,7 +36,9 @@ entity MemoryL2 is
 		-- I/O relacionados ao cache de dados
 		cdAddr:       in  bit_vector(9 downto 0);
 		cdDataIn:     in  word_vector_type(1 downto 0);
-		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init)
+		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init);
+		--Para teste no top level
+		Mstate_d:   out bit_vector(2 downto 0)
     );
 end MemoryL2;
 
@@ -65,7 +67,9 @@ component MemoryL2Control is
 		cdEnable:      in  bit;
         cdMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheD e datapath da memoria
-        cdMemReady:    out bit := '1' 
+        cdMemReady:    out bit := '1';
+		--Para teste no top level
+		Mstate_d:   out bit_vector(2 downto 0)
  
 
     );
@@ -108,7 +112,7 @@ begin
 																    cdAddr, cdDataIn, cdDataOut);
 	
 	L2MemoUC : MemoryL2Control generic map(accessTimeMemory) port map(clk, cRead, cWrite, writeOptions, ciEnable, ciMemRw, ciReady,
-        															   cdEnable, cdMemRw, cdReady);
+        															   cdEnable, cdMemRw, cdReady, Mstate_d);
  		ciMemReady <= ciReady;
 		cdMemReady <= cdReady;																							  
 	

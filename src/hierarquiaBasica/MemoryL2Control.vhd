@@ -29,15 +29,15 @@ entity MemoryL2Control is
 		ciEnable:      in  bit;
         ciMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheI e datapath da memoria
-        ciMemReady:    out bit := '0';
+        ciMemReady:    out bit := '1';
         
         -- I/O relacionados cache dados
 		cdEnable:      in  bit;
         cdMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheD e datapath da memoria
-        cdMemReady:    out bit := '0' 
- 
-
+        cdMemReady:    out bit := '1' ;
+ 		--Para teste no top level
+		Mstate_d:   out bit_vector(2 downto 0)
     );
 end entity MemoryL2Control;
 
@@ -50,10 +50,10 @@ architecture MemoryL2Control_arch of MemoryL2Control is
     signal sReady: bit;
 
 begin
-	process (clk, ciEnable, cdEnable, cRead, cWrite)
+	process (clk, ciEnable, cdEnable)
     begin
 
-        if (rising_edge(clk) or ciEnable'event or cdEnable'event or cRead'event or cWrite'event) then
+        if (rising_edge(clk) or ciEnable'event or cdEnable'event) then
 
             case state is
                 --- estado inicial
@@ -63,13 +63,13 @@ begin
                 --- estado Ready
                 when READY =>
                     -- read I
-                    if (ciEnable = '1' and memRw = '0') then
+                    if (ciEnable = '1' and ciMemRw = '0') then
                         state <= IREAD;
                     -- Read D
-                    elsif (cdEnable = '1' and memRw = '0') then
+                    elsif (cdEnable = '1' and cdMemRw = '0') then
                         state <= DREAD;
                     -- Write D
-                    elsif (cdEnable = '1' and memRw = '1') then
+                    elsif (cdEnable = '1' and cdMemRw = '1') then
                         state <= DWRITE;
                     else
                         state <= READY;
@@ -110,10 +110,15 @@ begin
     
     sReady <= '1' when state = READY else '0';
     
-    -- saídas diferentes, mas o comportamento deve ser o mesmo (é a mesma memória)
+    -- saidas diferentes, mas o comportamento deve ser o mesmo
     ciMemReady <= sReady;
     cdMemReady <= sReady;
 
-
+	Mstate_d <= "000" when state = INIT else
+				"001" when state = READY else
+				"010" when state = DWRITE else
+				"011" when state = IREAD else
+				"100" when state = DREAD else
+				"111";
 
 end architecture MemoryL2Control_arch;

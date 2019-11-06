@@ -30,7 +30,13 @@ entity memoryHierarchy is
 		cpuAddrD:      in  bit_vector(9 downto 0);
 		dataInD :      in  word_type;
 		dataOutD:      out word_type;
-		cpuWrite:      in  bit
+		cpuWrite:      in  bit;
+		
+		--Para testes no top level
+		Istate_d:      out bit_vector(2 downto 0);
+		Dstate_d :	   out bit_vector(3 downto 0);
+		Mstate_d:   out bit_vector(2 downto 0)
+		
     );
 end memoryHierarchy;
 
@@ -50,7 +56,8 @@ component cacheI is
       	memEnable: out bit := '0';
       	dataOut:   out word_type := (others => '0');
 		dataIn:    in  word_vector_type(1 downto 0);
-		memAddr:   out bit_vector(9 downto 0) := (others => '0')
+		memAddr:   out bit_vector(9 downto 0) := (others => '0');
+		state_d:   out bit_vector(2 downto 0)
 	);
 end component;
 
@@ -72,8 +79,9 @@ component cacheD is
 
 		memBlockIn:    in  word_vector_type(1 downto 0);
 		memAddr:       out bit_vector(9 downto 0) := (others => '0');
-		memBlockOut:   out word_vector_type(1 downto 0) := (others => word_vector_init)
-
+		memBlockOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
+		--Para testes no top level
+		state_d :	   out bit_vector(3 downto 0)
     );
 end component;
 
@@ -102,7 +110,9 @@ component MemoryL2 is
 		-- I/O relacionados ao cache de dados
 		cdAddr:       in  bit_vector(9 downto 0);
 		cdDataIn:     in  word_vector_type(1 downto 0);
-		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init)
+		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init);
+		--Para teste no top level
+		Mstate_d:   out bit_vector(2 downto 0)
     );
 end component;
 
@@ -142,7 +152,8 @@ begin
 		memRW          => iMemRWI,
       	memEnable      => iMemEnableI,
 		dataIn         => iMemDataInI,
-		memAddr        => iMemAddrI
+		memAddr        => iMemAddrI,
+		state_d        => Istate_d
 	);
 
 	data : cacheD  port map (
@@ -160,15 +171,15 @@ begin
 
 		memBlockIn     => iMemDataInD,
 		memAddr        => iMemAddrD,
-		memBlockOut    => iMemDataOutD
+		memBlockOut    => iMemDataOutD,
+		state_d        => Dstate_d
     );
 
 	
 	
 	
 	MemoriaL2 : MemoryL2 generic map(accessTimeMemory) port map(clkI, iMemEnableI, iMemRWI, iMemReadyI, iMemEnableD, iMemRWD, iMemReadyD,
-																 iMemAddrI, iMemDataInI, iMemAddrD, iMemDataOutD, iMemDataInD);
-							  
-																 
+																 iMemAddrI, iMemDataInI, iMemAddrD, iMemDataOutD, iMemDataInD, Mstate_d);
+										 
 										
 end architecture;

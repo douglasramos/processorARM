@@ -8,8 +8,8 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 
 entity cacheIPath is
@@ -74,7 +74,7 @@ begin
 
 
     --  saidas
-	hit <= '1' when cache(index).valid = '1' and cache(index).tag = tag else '0';
+	hit     <= '1' when cache(index).valid = '1' and cache(index).tag = tag else '0';
 	dataOut <=	cache(index).data(wordOffset);
 	memAddr <= cpuAddr;
 

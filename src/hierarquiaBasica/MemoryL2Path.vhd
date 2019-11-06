@@ -22,19 +22,19 @@ entity MemoryL2Path is
 
 		-- I/O relacionados ao controle
 		writeOptions: in  bit_vector(1 downto 0);
-		ciReady:     in  bit;
-		cdReady:     in  bit; 
-		cRead:       out bit := '0';
-		cWrite:      out bit := '0';
+		ciReady:      in  bit;
+		cdReady:      in  bit; 
+		cRead:        out bit := '0';
+		cWrite:       out bit := '0';
 
 		-- I/O relacionados ao cache de instrucoes
-		ciAddr:      in  bit_vector(9 downto 0);
-		ciDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
+		ciAddr:       in  bit_vector(9 downto 0);
+		ciDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao cache de dados
-		cdAddr:      in  bit_vector(9 downto 0);
-		cdDataIn:    in  word_vector_type(1 downto 0);
-		cdDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init)
+		cdAddr:       in  bit_vector(9 downto 0);
+		cdDataIn:     in  word_vector_type(1 downto 0);
+		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init)
         
     );
 end entity MemoryL2Path;
@@ -96,17 +96,17 @@ begin
 	
 	-- leitura
 	sdataOut <= (memory(index).data) after accessTime when (writeOptions = "01" or writeOptions = "10");
-	cRead <= '1' when sdataOut'event;
+	cRead <= '1' when (sdataOut'event and writeOptions /= "00") else '0';
 	
 	-- cache D => atualiza quando a mudança é de zero pra 1
 	cdDataOut <= sdataOut when (cdReady'event and cdReady = '1');
 
 	-- cache I => atualiza quando a mudança é de zero pra 1
-	ciDataOut <= sdataOut when (ciReady'event and ciReady = '1') ;
+	ciDataOut <= sdataOut when (ciReady'event and ciReady = '1');
 
 	-- escrita cache D
 	memory(index).data <= (cdDataIn) after accessTime when writeOptions = "11";
-	cWrite <= '1' when memory'event; 
+	cWrite <= '1' when (memory'event and writeOptions /= "00") else '0'; 
 	
 	--- process para escrita no arquivo
 	

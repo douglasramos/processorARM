@@ -34,8 +34,9 @@ entity cacheDControl is
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
 		memRW:         out bit := '0';  --- '1' write e '0' read
-        memEnable:     out bit := '0'
-
+        memEnable:     out bit := '0';
+		--Para testes no top level
+		state_d :	   out bit_vector(3 downto 0)
     );
 end entity cacheDControl;
 
@@ -43,7 +44,9 @@ architecture cacheDControl_arch of cacheDControl is
 
 	-- Definicao de estados
     type states is (INIT, READY, CTAG, WRITE, MWRITE, CTAG2, HIT, MISS, MREADY, MWRITEBF);
-    signal state: states := INIT;
+    signal state: states := INIT; 
+	
+	
 
 begin
 	process (clk, clkPipeline, cpuAddr)
@@ -155,6 +158,18 @@ begin
     -- memory
 	memEnable <= '1' when state = MISS   else '0';
 	memRW     <= '1' when state = MWRITE else '0';
-
+		
+	--Estado																		  
+	state_d	  <= "0000" when state = INIT else										   
+				"0001" when state = READY else
+				"0010" when state = CTAG else										  
+				"0011" when state = WRITE else										  
+				"0100" when state = MWRITE else										  					
+				"0101" when state = CTAG2 else										  
+				"0110" when state = HIT else										  
+				"0111" when state = MISS else										  
+				"1000" when state = MREADY else										  
+				"1001" when state = MWRITEBF else										  					
+				"1111";
 
 end architecture cacheDControl_arch;
