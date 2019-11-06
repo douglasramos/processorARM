@@ -44,26 +44,15 @@ end entity MemoryL2Control;
 architecture MemoryL2Control_arch of MemoryL2Control is
 
 	-- Definicao de estados
-    type states is (INIT, READY, DWRITE, IREAD, DREAD);
+    type states is (INIT, READY, DWRITE, IREAD, DREAD, IREADYDRPEND, DRREADYIPEND, IREADYDWPEND, DWREADYIPEND);
     signal state: states := INIT;
 
-    signal sReady: bit;
-
 begin
-    process (clk, ciEnable, cdEnable)
-    
-    --- tais variaveis indicam se esta ocorrendo uma leitura ou escrita
-
-    -- quando essas variaveis estiverem em 1 o sinal de ready deve esperar para ser atualizado
-    -- independentemente de estar no estado Ready ou não
-
-    variable ciIsReading: natural := 0;
-    variable cdIsReading: natural := 0;
-    variable cdIsWriting: natural := 0;
+    process (clk)
 
     begin
 
-        if (rising_edge(clk) or ciEnable'event or cdEnable'event) then
+        if (rising_edge(clk)) then
 
             case state is
                 --- estado inicial
@@ -74,39 +63,70 @@ begin
                 when READY =>
                     -- read I
                     if (ciEnable = '1' and ciMemRw = '0') then
-                        ciIsReading := 1;
                         state <= IREAD;
                     -- Read D
                     elsif (cdEnable = '1' and cdMemRw = '0') then
-                        cdIsReading := 1;
                         state <= DREAD;
                     -- Write D
                     elsif (cdEnable = '1' and cdMemRw = '1') then
-                        cdIsWriting := 1;
                         state <= DWRITE;
                     else
                         state <= READY;
                     end if;
             
-                --- estadao Read I
+                --- estado Read I
                 when IREAD =>
                     if cRead = '1' then
-                        ciIsReading := 0;
-                        state <= READY;
+                        -- Read de dado pendente
+                        if (cdEnable = '1' and cdMemRw = '0') then
+                            state <= IREADYDRPEND;
+                        -- Write de dado pendente
+                        elsif (cdEnable = '1' and cdMemRw = '1') then
+                            state <= IREADYDWPEND;
+                        -- Ready
+                        else
+                            state <= READY;
+                        end if;
                     end if;
+
+                --- estado I Ready Data Read Pend
+                when IREADYDRPEND =>
+                    state <= DREAD;
+    
+                --- estado Data Read Ready I Pend
+                when DRREADYIPEND =>
+                    state <= IREAD;
 
                 --- estadao Read I
                 when DREAD =>
                     if cRead = '1' then
-                        cdIsReading := 0;
-                        state <= READY;
+                        -- Read de instrucao pendente
+                        if (ciEnable = '1' and ciMemRw = '0') then
+                            state <= DRREADYIPEND;
+                        -- Ready
+                        else
+                            state <= READY;
+                        end if;
                     end if;
+                
+                --- estado I Ready Data Write Pend
+                when IREADYDWPEND =>
+                    state <= DWRITE;
+                
+                --- estado Data Write Ready I Pend
+                when DWREADYIPEND =>
+                    state <= IREAD;
 
                 --- estado Write D
                 when DWRITE =>
                     if cWrite = '1' then
-                        cdIsWriting := 0;
-                        state <= READY;
+                        -- Read de instrucao pendente
+                        if (ciEnable = '1' and ciMemRw = '0') then
+                            state <= DWREADYIPEND;
+                        -- Ready
+                        else
+                            state <= READY;
+                        end if;
                     end if;
 
 
@@ -124,11 +144,9 @@ begin
                     "11" when (state = DWRITE) else
                     "00";
     
-    sReady <= '1' when state = READY else '0';
-    
-    -- saidas diferentes, mas o comportamento deve ser o mesmo
-    ciMemReady <= sReady when ciIsReading = 0;
-    cdMemReady <= sReady when (cdIsReading = 0 and cdIsWriting = 0);
+    -- Ready condicionado ao estado
+    ciMemReady <= '1' when (state = READY or state = IREADYDRPEND or state = IREADYDWPEND) else '0';
+    cdMemReady <= '1' when (state = READY or state = DRREADYIPEND or state = DWREADYIPEND) else '0';
 
 
 
