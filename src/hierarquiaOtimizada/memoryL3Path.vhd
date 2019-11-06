@@ -11,7 +11,7 @@ use std.textio.all;
 
 -- importa os types do projeto
 library arm;
-use arm.types.all;
+use types.all;
 
 
 entity MemoryL3Path is
