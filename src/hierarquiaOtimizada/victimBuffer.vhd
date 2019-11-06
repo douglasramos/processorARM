@@ -1,4 +1,4 @@
--- PCS3422 - Organizacao e Arquitetura de Computadores II
+-- PCS3422 - Organização e Arquitetura de Computadores II
 -- ARM
 --
 -- Description:
@@ -12,31 +12,30 @@ use ieee.numeric_bit.all;
 use types.all;
 
 
-entity victimBuffer is
+entity VBTopLevel is										 
     generic (
         accessTime: in time := 5 ns
     );
-    port (
+    port (			  
 		clk 			   		   : in bit;
 		queueInst		           : in  bit;
 		queueData		           : in  bit;
-		readyL2			   		   : in  bit;
-		evictedBlockData		   : in  word_vector_type(1 downto 0);		-- Um bloco, 32 words
+		readyL2			   		   : in  bit;						 
+		evictedBlockData		   : in  word_vector_type(1 downto 0);		-- Um bloco, 2 words
 		evictedBlockDataAddress	   : in  bit_vector(9 downto 0);
 		evictedBlockDataDirty	   : in  bit;
-		evictedBlockInst		   : in  word_vector_type(1 downto 0);		-- Um bloco, 32 words
+		evictedBlockInst		   : in  word_vector_type(1 downto 0);		-- Um bloco, 2 words
 		evictedBlockInstAddress	   : in  bit_vector(9 downto 0);
-		evictedBlockInstDirty	   : in bit := '0';						    -- Instrucao nao tem write!
-		blockOut  	  			   : out word_vector_type(1 downto 0);     -- Saida do buffer: um bloco
+		evictedBlockInstDirty	   : in bit := '0';						    -- Instrução não tem write!
+		blockOut  	  			   : out word_vector_type(1 downto 0);     -- Saída do buffer: um bloco
 		blockOutAddress			   : out bit_vector(9 downto 0);
-		blockOutDataInst		   : out bit;								-- '1' if data else '0'
 		blockOutIsDirty			   : out bit
     );
-end entity victimBuffer;
+end entity VBTopLevel;
 
-architecture victimBuffer_arch of victimBuffer is
+architecture archi of VBTopLevel is	 	  
 
-component victimBufferControl is
+component VBControl is
     port (
 		-- I/O relacionados ao stage IF
 		clk				   : in  bit;
@@ -49,12 +48,12 @@ component victimBufferControl is
     );
 end component;
 
-component victimBufferPath is
+component victimBuffer is
     generic (
 		accessTime	   : in time := 5 ns;
 		bufferLength   : natural := 5	  						-- Tamanho do Buffer
     );
-    port (
+    port (	
 	   	queueBlockData			   : in  bit;
 		queueBlockInst       	   : in  bit;
 		readyRead			       : in  bit;
@@ -64,11 +63,10 @@ component victimBufferPath is
 		evictedBlockInst		   : in  word_vector_type(1 downto 0);		-- Um bloco, 32 words
 		evictedBlockInstAddress	   : in  bit_vector(9 downto 0);
 		evictedBlockInstDirty	   : in  bit;
-		blockOut  	  			   : out word_vector_type(1 downto 0);     -- Saida do buffer: um bloco
+		blockOut  	  			   : out word_vector_type(1 downto 0);     -- Saída do buffer: um bloco
 		blockOutAddress			   : out bit_vector(9 downto 0);
-		blockOutDataInst		   : out bit;								-- '1' if data else '0'
 		blockOutIsDirty			   : out bit
-    );
+    );																	 	
 end component;
 
 
@@ -76,10 +74,11 @@ signal queueBlockData, queueBlockInst: bit;
 signal readyRead		  			 : bit;
 
 begin
-
-	VBUC : victimBufferControl port map(clk, queueInst, queueData, readyL2, queueBlockData, queueBlockInst, readyRead);
-
-	VBDatapath : victimBufferPath generic map(accessTime) port map(queueBlockData, queueBlockInst, readyRead,evictedBlockData,
+	
+	VBUC : VBControl port map(clk, queueInst, queueData, readyL2, queueBlockData, queueBlockInst, readyRead);
+	
+	VBDatapath : victimBuffer generic map(accessTime) port map(queueBlockData, queueBlockInst, readyRead,evictedBlockData,
 																evictedBlockDataAddress, evictedBlockDataDirty, evictedBlockInst, evictedBlockInstAddress,
-																evictedBlockInstDirty, blockOut, blockOutAddress, blockOutDataInst, blockOutIsDirty);
-end victimBuffer_arch;
+																evictedBlockInstDirty, blockOut, blockOutAddress, blockOutIsDirty);
+end archi;
+   
