@@ -18,7 +18,6 @@ entity cacheL2Control is
     );
     port (
 
-        -- I/O pipeline?
         clk:           in  bit;
 
 		-- I/O relacionado ao victim buffer
@@ -35,6 +34,7 @@ entity cacheL2Control is
 		-- I/O relacionado ao cache de instruções
 		ciRW:          in  bit;
 		ciEnable:      in  bit;
+
 		-- I/O cachel e datapath do L2
 		ciL2Hit:       out bit := '0';
 
@@ -44,6 +44,7 @@ entity cacheL2Control is
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		addrOptions:   out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
+		delete:        out bit := '0';
 
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
@@ -257,6 +258,10 @@ begin
     -- memory
 	memEnable <= '1' when (state = IMISS or state = DMISS or state = IMISSMWRITE or state = DMISSMWRITE) else '0';
 	memRW     <= '1' when (state = VBMWRITE or state = IMISSMWRITE or state = DMISSMWRITE)  else '0';
+
+	-- delete (lógica associada a otimização exclusion)
+	delete <= '1' when (state = IHIT or state = DHIT) else
+			  '0'
 
 
 end architecture cacheL2Control_arch;
