@@ -10,8 +10,8 @@ use ieee.numeric_bit.all;
 use std.textio.all;
 
 -- importa os types do projeto
-
-use types.all;
+library arm;
+use arm.types.all;
 
 
 entity MemoryL2Path is

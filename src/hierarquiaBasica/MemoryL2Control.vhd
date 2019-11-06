@@ -8,8 +8,8 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-
-use types.all;
+library arm;
+use arm.types.all;
 
 
 entity MemoryL2Control is
@@ -35,9 +35,9 @@ entity MemoryL2Control is
 		cdEnable:      in  bit;
         cdMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheD e datapath da memoria
-        cdMemReady:    out bit := '1' ;
- 		--Para teste no top level
-		Mstate_d:   out bit_vector(2 downto 0)
+        cdMemReady:    out bit := '1' 
+ 
+
     );
 end entity MemoryL2Control;
 
@@ -50,7 +50,17 @@ architecture MemoryL2Control_arch of MemoryL2Control is
     signal sReady: bit;
 
 begin
-	process (clk, ciEnable, cdEnable)
+    process (clk, ciEnable, cdEnable)
+    
+    --- tais variaveis indicam se esta ocorrendo uma leitura ou escrita
+
+    -- quando essas variaveis estiverem em 1 o sinal de ready deve esperar para ser atualizado
+    -- independentemente de estar no estado Ready ou não
+
+    variable ciIsReading := 0;
+    variable cdIsReading := 0;
+    variable cdIsWriting := 0;
+
     begin
 
         if (rising_edge(clk) or ciEnable'event or cdEnable'event) then
@@ -64,12 +74,15 @@ begin
                 when READY =>
                     -- read I
                     if (ciEnable = '1' and ciMemRw = '0') then
+                        ciIsReading := 1;
                         state <= IREAD;
                     -- Read D
                     elsif (cdEnable = '1' and cdMemRw = '0') then
+                        cdIsReading := 1;
                         state <= DREAD;
                     -- Write D
                     elsif (cdEnable = '1' and cdMemRw = '1') then
+                        cdIsWriting := 1;
                         state <= DWRITE;
                     else
                         state <= READY;
@@ -78,18 +91,21 @@ begin
                 --- estadao Read I
                 when IREAD =>
                     if cRead = '1' then
+                        ciIsReading := 0;
                         state <= READY;
                     end if;
 
                 --- estadao Read I
                 when DREAD =>
                     if cRead = '1' then
+                        cdIsReading := 0;
                         state <= READY;
                     end if;
 
                 --- estado Write D
                 when DWRITE =>
                     if cWrite = '1' then
+                        cdIsWriting := 0;
                         state <= READY;
                     end if;
 
@@ -111,14 +127,9 @@ begin
     sReady <= '1' when state = READY else '0';
     
     -- saidas diferentes, mas o comportamento deve ser o mesmo
-    ciMemReady <= sReady;
-    cdMemReady <= sReady;
+    ciMemReady <= sReady when ciIsReading = 0;
+    cdMemReady <= sReady when (cdIsReading = 0 and cdIsWriting = 0);
 
-	Mstate_d <= "000" when state = INIT else
-				"001" when state = READY else
-				"010" when state = DWRITE else
-				"011" when state = IREAD else
-				"100" when state = DREAD else
-				"111";
+
 
 end architecture MemoryL2Control_arch;
