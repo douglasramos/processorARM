@@ -63,13 +63,13 @@ begin
                 --- estado Ready
                 when READY =>
                     -- read I
-                    if (ciEnable = '1' and memRw = '0') then
+                    if (ciEnable = '1' and ciMemRw = '0') then
                         state <= IREAD;
                     -- Read D
-                    elsif (cdEnable = '1' and memRw = '0') then
+                    elsif (cdEnable = '1' and cdMemRw = '0') then
                         state <= DREAD;
                     -- Write D
-                    elsif (cdEnable = '1' and memRw = '1') then
+                    elsif (cdEnable = '1' and cdMemRw = '1') then
                         state <= DWRITE;
                     else
                         state <= READY;

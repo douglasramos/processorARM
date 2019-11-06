@@ -21,20 +21,20 @@ entity MemoryL2Path is
     port (
 
 		-- I/O relacionados ao controle
-		writeOptions in  bit_vector(1 downto 0);
-		ciReady:     in  bit;
-		cdReady:     in  bit; 
-		cRead:       out bit := '0';
-		cWrite:      out bit := '0';
+		writeOptions: in  bit_vector(1 downto 0);
+		ciReady:      in  bit;
+		cdReady:      in  bit; 
+		cRead:        out bit := '0';
+		cWrite:       out bit := '0';
 
 		-- I/O relacionados ao cache de instrucoes
-		ciAddr:      in  bit_vector(9 downto 0);
-		ciDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
+		ciAddr:       in  bit_vector(9 downto 0);
+		ciDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao cache de dados
-		cdAddr:      in  bit_vector(9 downto 0);
-		cdDataIn:    in  word_vector_type(1 downto 0);
-		cdDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init)
+		cdAddr:       in  bit_vector(9 downto 0);
+		cdDataIn:     in  word_vector_type(1 downto 0);
+		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init)
         
     );
 end entity MemoryL2Path;
