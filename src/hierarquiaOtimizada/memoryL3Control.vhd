@@ -8,7 +8,7 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
+
 use types.all;
 
 

@@ -10,7 +10,7 @@ use ieee.numeric_bit.all;
 use std.textio.all;
 
 -- importa os types do projeto
-library arm;
+
 use types.all;
 
 
