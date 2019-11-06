@@ -8,8 +8,8 @@ library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 
 entity cacheIControl is
@@ -31,7 +31,8 @@ entity cacheIControl is
         -- I/O relacionados a Memoria principal
 		memReady:      in  bit;
 		memRW:         out bit := '0';  --- '1' write e '0' read
-        memEnable:     out bit := '0'
+        memEnable:     out bit := '0';
+		state_d:   out bit_vector(2 downto 0)
 
     );
 end entity cacheIControl;
@@ -43,14 +44,14 @@ architecture cacheIControl_arch of cacheIControl is
     signal state: states := INIT;
 
 	-- debug
-    signal state_d: bit_vector(2 downto 0);
+    --signal state_d: bit_vector(2 downto 0);
 
 begin
 	process (clk, pc)
 
 
 	begin
-		if rising_edge(clk) then
+		if rising_edge(clk) or pc'event then
 			case state is
 
 				--- estado inicial
@@ -124,5 +125,15 @@ begin
 
     -- memEnable
 	memEnable <= '1' when state = MISS else '0';
-
+  
+	-- Debug
+	
+	state_d <=  "000" when state = INIT else
+				"001" when state = READY else
+				"010" when state = CTAG else
+				"011" when state = HIT else
+				"100" when state = MISS else
+				"101" when state = MEM else
+				"110" when state = CTAG2 else
+				"111";
 end architecture cacheIControl_arch;

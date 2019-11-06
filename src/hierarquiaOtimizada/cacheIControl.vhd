@@ -52,7 +52,7 @@ begin
 
 
 	begin
-		if rising_edge(clk) then
+		if rising_edge(clk) or pc'event then
 			case state is
 
 				--- estado inicial
