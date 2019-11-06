@@ -23,7 +23,7 @@ entity MemoryL3Control is
         -- I/O relacionados a memoria
         cRead:     in  bit;
 		cWrite:    in  bit;
-        RW:        out bit := '0';
+        RW:        out bit_vector(1 downto 0) := "00";
 
 		-- I/O relacionados cache L2
 		enable:    in  bit;
@@ -80,8 +80,13 @@ begin
 
 	--- saidas ---
     
-    RW <= '0' when (state = READ) else
-          '1' when (state = WRITE);
+    --- RW
+    -- 01 => Read
+    -- 10 => Write
+    -- 00 => Idle
+    RW <= "01" when (state = READ) else
+          "10" when (state = WRITE) else
+          "00";
     
     memReady <= '1' when (state = READY) else '0';
 

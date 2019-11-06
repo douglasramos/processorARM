@@ -21,7 +21,7 @@ entity MemoryL3Path is
     port (
 
 		-- I/O relacionados ao controle
-		RW:         in  bit;
+		RW:          in  bit_vector(1 downto 0);
 		cRead:       out bit := '0';
 		cWrite:      out bit := '0';
 
@@ -80,13 +80,13 @@ begin
 	index <= blockAddr mod numberOfBlocks;
 	
 	-- leitura
-	sdataOut <= (memory(index).data) after accessTime when RW = '0';
+	sdataOut <= (memory(index).data) after accessTime when RW = "01";
 	dataOut <= sdataOut;
-	cRead <= '1' when sdataOut'event;
+	cRead <= '1' when (sdataOut'event and RW /= "00") else '0';
 
 	-- escrita
-	memory(index).data <= (dataIn) after accessTime when RW = '1';
-	cWrite <= '1' when memory'event; 
+	memory(index).data <= (dataIn) after accessTime when RW = "10";
+	cWrite <= '1' when (memory'event and RW /= "00") else '0'; 
 	
 	--- process para escrita no arquivo
 	
