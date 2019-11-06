@@ -96,17 +96,17 @@ begin
 	
 	-- leitura
 	sdataOut <= (memory(index).data) after accessTime when (writeOptions = "01" or writeOptions = "10");
-	cRead <= '1' when sdataOut'event;
+	cRead <= '1' when (sdataOut'event and writeOptions /= "00") else '0';
 	
 	-- cache D => atualiza quando a mudança é de zero pra 1
 	cdDataOut <= sdataOut when (cdReady'event and cdReady = '1');
 
 	-- cache I => atualiza quando a mudança é de zero pra 1
-	ciDataOut <= sdataOut when (ciReady'event and ciReady = '1') ;
+	ciDataOut <= sdataOut when (ciReady'event and ciReady = '1');
 
 	-- escrita cache D
 	memory(index).data <= (cdDataIn) after accessTime when writeOptions = "11";
-	cWrite <= '1' when memory'event; 
+	cWrite <= '1' when (memory'event and writeOptions /= "00") else '0'; 
 	
 	--- process para escrita no arquivo
 	

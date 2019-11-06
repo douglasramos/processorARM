@@ -29,13 +29,13 @@ entity MemoryL2Control is
 		ciEnable:      in  bit;
         ciMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheI e datapath da memoria
-        ciMemReady:    out bit := '0';
+        ciMemReady:    out bit := '1';
         
         -- I/O relacionados cache dados
 		cdEnable:      in  bit;
         cdMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheD e datapath da memoria
-        cdMemReady:    out bit := '0' 
+        cdMemReady:    out bit := '1' 
  
 
     );
@@ -50,10 +50,10 @@ architecture MemoryL2Control_arch of MemoryL2Control is
     signal sReady: bit;
 
 begin
-	process (clk, ciEnable, cdEnable, cRead, cWrite)
+	process (clk, ciEnable, cdEnable)
     begin
 
-        if (rising_edge(clk) or ciEnable'event or cdEnable'event or cRead'event or cWrite'event) then
+        if (rising_edge(clk) or ciEnable'event or cdEnable'event) then
 
             case state is
                 --- estado inicial
@@ -110,7 +110,7 @@ begin
     
     sReady <= '1' when state = READY else '0';
     
-    -- saídas diferentes, mas o comportamento deve ser o mesmo (é a mesma memória)
+    -- saidas diferentes, mas o comportamento deve ser o mesmo
     ciMemReady <= sReady;
     cdMemReady <= sReady;
 
