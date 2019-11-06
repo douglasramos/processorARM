@@ -261,7 +261,7 @@ begin
 
 	-- delete (lógica associada a otimização exclusion)
 	delete <= '1' when (state = IHIT or state = DHIT) else
-			  '0'
+			  '0';
 
 
 end architecture cacheL2Control_arch;

@@ -62,9 +62,9 @@ component cacheL2Path is
 		updateInfo:     in  bit;
 		ciL2Hit:        in  bit;
 		cdL2Hit:        in  bit;
+		delete:         in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
-		delete:			out bit := '0';
 
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(1 downto 0) := (others => word_vector_init);
@@ -93,7 +93,6 @@ component cacheL2Control is
     );
     port (
 
-        -- I/O pipeline?
         clk:           in  bit;
 
 		-- I/O relacionado ao victim buffer
@@ -110,16 +109,17 @@ component cacheL2Control is
 		-- I/O relacionado ao cache de instruções
 		ciRW:          in  bit;
 		ciEnable:      in  bit;
+
 		-- I/O cachel e datapath do L2
 		ciL2Hit:       out bit := '0';
 
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
-		delete:		   in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		addrOptions:   out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
+		delete:        out bit := '0';
 
         -- I/O relacionados a Memoria princial
 		memReady:      in  bit;
@@ -143,10 +143,10 @@ cdataL2Hit <= cdL2Hit;
 cinstL2Hit <= ciL2Hit;
 
 L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdRW, cdEnable, cdL2Hit, ciRW, ciEnable, ciL2Hit,
-													      dirtyBit, hitSignal, iDelete, writeOptions, addrOptions, updateInfo, memReady, memRW, memEnable);
+													      dirtyBit, hitSignal, writeOptions, addrOptions, updateInfo, iDelete, memReady, memRW, memEnable);
 
 
-L2_FD : cacheL2Path port map(writeOptions, addrOptions, updateInfo, ciL2Hit, cdL2Hit, hitSignal, dirtyBit, iDelete, vbDataIn, vbAddr, dirtyData, cdAddr,
+L2_FD : cacheL2Path port map(writeOptions, addrOptions, updateInfo, ciL2Hit, cdL2Hit, iDelete, hitSignal, dirtyBit, vbDataIn, vbAddr, dirtyData, cdAddr,
 							  cdDataOut, ciAddr, ciDataOut, memBlockIn, memAddr, memBlockOut);
 
 
