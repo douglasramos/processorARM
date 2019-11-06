@@ -17,7 +17,7 @@ use types.all; -- 1 word, 32 bits
 entity victimBufferPath is
     generic (
 		accessTime	   : in time := 5 ns;
-		bufferLength   : natural := 20 -- Tamanho do Buffer
+		bufferLength   : natural := 5 -- Tamanho do Buffer
     );
     port (
 	   	queueBlockData			   : in  bit;
@@ -39,8 +39,8 @@ end victimBufferPath;
 
 architecture victimBufferPath_arch of victimBufferPath is
 
-	constant palavrasPorBloco: positive := 32;
-	constant blocoSize:        positive := palavrasPorBloco * 4; --- 16 * 4 = 64Bytes  1 word = 4 bytes
+	constant palavrasPorBloco: positive := 2;
+	constant blocoSize:        positive := palavrasPorBloco * 4; --- 2 * 4 = 8Bytes  1 word = 4 bytes
 
 	type RowType is record
         valid    : bit;

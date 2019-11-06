@@ -52,7 +52,7 @@ end component;
 component victimBufferPath is
     generic (
 		accessTime	   : in time := 5 ns;
-		bufferLength   : natural := 20	  						-- Tamanho do Buffer
+		bufferLength   : natural := 5	  						-- Tamanho do Buffer
     );
     port (
 	   	queueBlockData			   : in  bit;
