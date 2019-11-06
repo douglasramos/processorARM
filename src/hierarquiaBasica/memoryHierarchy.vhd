@@ -2,16 +2,19 @@
 -- ARM
 --
 -- Description:
---     top level hierarquia de Memória (Fluxo de dados + Unidade de controle)
+--     top level hierarquia de Memoria nao otimizada (cache de 1 nivel somente; L2 ja eh a memoria)
 
 library ieee;
 use ieee.numeric_bit.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 entity memoryHierarchy is
+	generic(
+		accessTimeMemory: in time := 200 ns
+	);
     port(
 		clkPipeline:   in  bit;
 		clkI:          in  bit;
@@ -33,7 +36,7 @@ end memoryHierarchy;
 
 architecture memoryHierarchy_arch of memoryHierarchy is
 
---- Cache de instruções
+------------------------------------------------------------------------- Cache de instrucoes
 component cacheI is
     port(
 		-- I/O relacionados ao pipeline
@@ -41,7 +44,7 @@ component cacheI is
 		cpuAddr: in  bit_vector(9 downto 0);
       	stall:   out bit := '0';
 
-		-- I/O ao nível L2
+		-- I/O ao nivel L2
 		memReady:  in  bit;
 		memRW:     out bit := '0';  --- '1' write e '0' read
       	memEnable: out bit := '0';
@@ -51,7 +54,7 @@ component cacheI is
 	);
 end component;
 
---- Cache de dados
+------------------------------------------------------------------------- Cache de dados
 component cacheD is
     port(
 		clk:           in  bit;
@@ -74,29 +77,37 @@ component cacheD is
     );
 end component;
 
-component memory is
+------------------------------------------------------------------------- L2: Memoria
+component MemoryL2 is
     generic (
-        accessTime: in time := 40 ns
+        accessTimeMemory: in time := 200 ns
     );
-    port (
+    port (	
+		clk : in bit;
+		-- I/O relacionados cache instrucao
+		ciEnable:      in  bit;
+        ciMemRw:       in  bit; --- '1' write e '0' read
+		-- I/O cacheI e datapath da memoria
+        ciMemReady:    out bit := '1';		 
+		-- I/O relacionados cache dados
+		cdEnable:      in  bit;
+        cdMemRw:       in  bit; --- '1' write e '0' read
+        -- I/O cacheD e datapath da memoria
+        cdMemReady:    out bit := '1'; 
 
-		-- I/O relacionados cache de Instrucoes
-		ciEnable:     in   bit := '0';
-		ciMemRw:      in   bit; --- '1' write e '0' read
-		ciAddr:       in   bit_vector(9 downto 0);
-		ciDataBlock:  out  word_vector_type(1 downto 0) := (others => word_vector_init);
-		ciMemReady:   out  bit := '0';
+		-- I/O relacionados ao cache de instrucoes
+		ciAddr:       in  bit_vector(9 downto 0);
+		ciDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init);
 
-		-- I/O relacionados cache de dados
-		cdEnable:    in  bit;
-		cdMemRw:     in  bit; --- '1' write e '0' read
-		cdAddr:      in  bit_vector(9 downto 0);
-		cdDataIn:    in  word_vector_type(1 downto 0);
-		cdDataOut:   out word_vector_type(1 downto 0) := (others => word_vector_init);
-		cdMemReady:  out bit := '0'
-
+		-- I/O relacionados ao cache de dados
+		cdAddr:       in  bit_vector(9 downto 0);
+		cdDataIn:     in  word_vector_type(1 downto 0);
+		cdDataOut:    out word_vector_type(1 downto 0) := (others => word_vector_init)
     );
 end component;
+
+
+------------------------------------------------------------------------- Signals
 
 	signal iMemReadyI: bit;
 	signal iMemRWI: bit;
@@ -111,6 +122,12 @@ end component;
 	signal iMemDataOutD: word_vector_type(1 downto 0);
 	signal iMemAddrD: bit_vector(9 downto 0);
 
+	signal writeOptions : bit_vector(1 downto 0);
+	
+	signal blockOut 				   : word_vector_type(1 downto 0);     -- Saida do victim buffer: um bloco
+	signal blockOutAddress			   : bit_vector(9 downto 0);
+	signal blockOutIsDirty			   : bit;
+	
 begin
 
 	instruction : cacheI port map (
@@ -146,22 +163,12 @@ begin
 		memBlockOut    => iMemDataOutD
     );
 
-	mem : memory port map (
-
-		-- I/O relacionados cache de Instrucoes
-		ciEnable      => iMemEnableI,
-		ciMemRw       => iMemRWI,
-		ciAddr        => iMemAddrI,
-		ciDataBlock   => iMemDataInI,
-		ciMemReady    => iMemReadyI,
-
-		-- I/O relacionados cache de dados
-		cdEnable      => iMemEnableD,
-		cdMemRw       => iMemRWD,
-		cdAddr        => iMemAddrD,
-		cdDataIn      => iMemDataOutD,
-		cdDataOut     => iMemDataInD,
-		cdMemReady    => iMemReadyD
-
-    );
+	
+	
+	
+	MemoriaL2 : MemoryL2 generic map(accessTimeMemory) port map(clkI, iMemEnableI, iMemRWI, iMemReadyI, iMemEnableD, iMemRWD, iMemReadyD,
+																 iMemAddrI, iMemDataInI, iMemAddrD, iMemDataOutD, iMemDataInD);
+							  
+																 
+										
 end architecture;
