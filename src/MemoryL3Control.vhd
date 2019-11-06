@@ -36,7 +36,7 @@ end entity MemoryL3Control;
 architecture MemoryL3Control_arch of MemoryL3Control is
 
 	-- Definicao de estados
-    type states is (INIT, READY, CTAG, WRITE, READ);
+    type states is (INIT, READY, WRITE, READ);
     signal state: states := INIT;
 
 begin
