@@ -43,7 +43,7 @@ begin
 	process (clk, enable, memRw)
     begin
 
-        if (rising_edge(clk) or enable'event or memRw'event) then
+        if (rising_edge(clk) or enable'event or cRead'event or cWrite'event)  then
 
             case state is
                 --- estado inicial
@@ -83,7 +83,7 @@ begin
     RW <= '0' when (state = READ) else
           '1' when (state = WRITE);
     
-    memReady <= '0' when (state = READ or state = WRITE) else '1';
+    memReady <= '1' when (state = READY) else '0';
 
 
 end architecture MemoryL3Control_arch;

@@ -22,8 +22,8 @@ entity cacheL2Path is
 		writeOptions:   in  bit_vector(1 downto 0);
 		addrOptions:    in  bit_vector(1 downto 0);
 		updateInfo:     in  bit;
-		ciL2Ready:       in  bit;
-		cdL2Ready:       in  bit;
+		ciL2Hit:        in  bit;
+		cdL2Hit:        in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
 		
@@ -131,9 +131,9 @@ begin
 
 	memBlockOut <= cache(index).set(set_index).data after accessTime;
 
-	ciDataOut <= (cache(index).set(set_index).data) after accessTime when ciL2Ready = '1';
+	ciDataOut <= (cache(index).set(set_index).data) after accessTime when ciL2Hit = '1';
 
-	cdDataOut <= (cache(index).set(set_index).data) after accessTime when cdL2Ready = '1';
+	cdDataOut <= (cache(index).set(set_index).data) after accessTime when cdL2Hit = '1';
 	
 
 	-- atualizacao do cache de acordo com os sinais de controle

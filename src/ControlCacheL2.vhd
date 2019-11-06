@@ -29,20 +29,20 @@ entity ControlCacheL2 is
 		-- I/O relacionado ao cache de dados
 		cdRW:          in  bit;
 		cdEnable:      in  bit;
-		cdL2Ready:     out bit := '0';
+		-- I/O cacheD e datapath do L2
+		cdL2Hit:       out bit := '0';
 
 		-- I/O relacionado ao cache de instruções
 		ciRW:          in  bit;
 		ciEnable:      in  bit;
-		ciL2Ready:     out bit := '0';
+		-- I/O cachel e datapath do L2
+		ciL2Hit:       out bit := '0';
 
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		addrOptions:   out bit_vector(1 downto 0) := "00";
-		ciReady:       out bit := '0';
-		cdReady:       out bit := '0';
 		updateInfo:    out bit := '0';
 		
         -- I/O relacionados a Memoria princial
@@ -233,12 +233,12 @@ begin
 	end process;
 	
 	--- saidas ---
+	
+	-- cdL2Hit => informa pra cache L1 que ocorreu um Hit de dados
+	cdL2Hit <= '1' when state = DHIT else '0';
 
-	-- cdL2Ready
-	cdL2Ready <= '1' when state = DHIT else '0';
-
-	-- ciL2Ready
-	ciL2Ready <= '1' when state = IHIT else '0';
+	-- ciL2Hit => informa pra cache L1 que ocorreu um Hit de instruções
+	ciL2Hit <= '1' when state = IHIT else '0';
 	
 	-- addrOptions
 	addrOptions <= "01" when (state = ICTAG or state = IMISSMWRITE or state = IHIT or state = IMISS or state = IMREADY or state = ICTAG2) else
