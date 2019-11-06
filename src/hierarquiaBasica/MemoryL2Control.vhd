@@ -57,9 +57,9 @@ begin
     -- quando essas variaveis estiverem em 1 o sinal de ready deve esperar para ser atualizado
     -- independentemente de estar no estado Ready ou não
 
-    variable ciIsReading := 0;
-    variable cdIsReading := 0;
-    variable cdIsWriting := 0;
+    variable ciIsReading: natural := 0;
+    variable cdIsReading: natural := 0;
+    variable cdIsWriting: natural := 0;
 
     begin
 
