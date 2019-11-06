@@ -2,7 +2,7 @@
 -- ARM
 --
 -- Description:
---     Memoria (Unidade de controle)
+--     Memoria L2
 
 library ieee;
 use ieee.numeric_bit.all;

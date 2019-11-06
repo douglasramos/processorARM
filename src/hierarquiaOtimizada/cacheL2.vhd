@@ -24,7 +24,7 @@ entity cacheL2 is
 		cdRW        : in  bit;
 		cdEnable    : in  bit;	
 		cdAddr		: in  bit_vector(9 downto 0);
-		--Cache de Instruções
+		--Cache de Instruï¿½ï¿½es
 		ciRW        : in  bit;
 		ciEnable    : in  bit;
 		ciAddr      : in  bit_vector(9 downto 0);
@@ -37,7 +37,7 @@ entity cacheL2 is
 		vbReady     : out bit;	
 		cdataL2Hit  : out bit := '0';
 		cdDataOut   : out word_vector_type(1 downto 0) := (others => word_vector_init);
-		--Cache de Instruções
+		--Cache de Instruï¿½ï¿½es
 		cinstL2Hit  : out bit := '0';
 		ciDataOut   : out word_vector_type(1 downto 0) := (others => word_vector_init);
 		--Memoria Principal
@@ -86,7 +86,7 @@ component cacheL2Path is
     );
 end component;
 
-component ControlCacheL2 is
+component cacheL2Control is
     generic (
         accessTime: in time := 50 ns
     );
@@ -139,7 +139,7 @@ begin
 cdataL2Hit <= cdL2Hit;
 cinstL2Hit <= ciL2Hit;
 	
-L2_UC : ControlCacheL2 port map(clk, vbDataIn, vbAddr, vbReady, cdRW, cdEnable, cdL2Hit, ciRW, ciEnable, ciL2Hit,
+L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdRW, cdEnable, cdL2Hit, ciRW, ciEnable, ciL2Hit,
 													      dirtyBit, hitSignal, writeOptions, addrOptions, updateInfo, memReady, memRW, memEnable);
 
 
