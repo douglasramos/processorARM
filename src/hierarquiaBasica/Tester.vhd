@@ -16,19 +16,23 @@ use types.all; -- 1 word, 32 bits
 
 entity tester is											 
 	generic (									
-		addrSize       : natural := 10; 
-		rangeBits      : natural := 4;    --Basta colocar qualquer natural dessa linha para baixo! Variáveis para geração de 
-		rand1_data     : natural := 1;						--números aleatórios!
-		rand2_data     : natural := 2;
-		rand1_inst     : natural := 21;
-		rand2_inst     : natural := 22;
-		plusMinusData1 : natural := 50;
-		plusMinusData2 : natural := 51;
-		plusMinusInst1 : natural := 100;
-		plusMinusInst2 : natural := 100
+		addrSize        : natural := 10; 
+		dataBlockAmount : natural := 100000;
+		instBlockAmount : natural := 100000;
+		rangeBits       : natural := 4;    --Basta colocar qualquer natural dessa linha para baixo! Variáveis para geração de 
+		rand1_data      : natural := 1;						--números aleatórios!
+		rand2_data      : natural := 2;
+		rand1_inst      : natural := 21;
+		rand2_inst      : natural := 22;
+		plusMinusData1  : natural := 50;
+		plusMinusData2  : natural := 51;
+		plusMinusInst1  : natural := 100;
+		plusMinusInst2  : natural := 100
 	);
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
+		restartAddr		  : in  bit;       
+		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "10" = só cache de instruções; "01" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
@@ -141,11 +145,18 @@ process(clk, stallData, stallInst)
 				if(start = 0) then
 					addressDataToMemory <= startAddressData;
 					addressInstToMemory <= startAddressInst;
-					start := 1;
-				
+					start := 1;								
+					
+				elsif(restartAddr = '1') then				
+					addressDataToMemory <= startAddressData;
+					addressInstToMemory <= startAddressInst;
+					
+				elsif(fullCache = '1')	then
+					addressDataSum := unsigned(addressDataToMemory) + unsigned(temp);
+					
 				else
 					if(stallData = '0') then -- and countData = 2) then
-						instructionDataCount := instructionDataCount +1;
+						instructionDataCount := instructionDataCount + 1;
 						if(cacheMode(0) = '1') then															   --Geração de ends. para cache de dados ativa!
 							if(addressMode = "00" and (not isBranchData'event) and isBranchData = '0') then	   --Endereços consecutivos
 								addressDataSum := unsigned(addressDataToMemory) + unsigned(temp);	           --end. += 4

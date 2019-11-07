@@ -13,7 +13,9 @@ use types.all;
 
 entity topLevel is 
 	generic ( 
-		accessTimeMemory : in time := 200 ns; 
+		accessTimeMemory : in time := 200 ns;  
+		dataBlockAmount : natural := 1;
+		instBlockAmount : natural := 1;
 		addrSize         : natural := 10; --Basta colocar qualquer natural dessa linha para baixo!
 		rangeBits        : natural := 4;                           -- Quantidade de bits de range no gerador aleatório de saltos
 		rand1_data       : natural := 1;
@@ -29,7 +31,9 @@ entity topLevel is
 		--INPUT--------------------------------------------
 		clkPipeline		  : in  bit;
 		clkI			  : in  bit;	--Só vou simular com clkI msm por enquanto...
-		clkD			  : in  bit;
+		clkD			  : in  bit;			 
+		restartAddr		  : in  bit;
+		fullCache		  : in  bit;
 		--Relacionados ao pipeline (Dados)	  
 		dataInD 		  : in  word_type;
 		cpuWrite		  : in  bit;
@@ -98,6 +102,8 @@ component tester is
 	);
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
+		restartAddr	      : in  bit;
+		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = só cache de instruções; "10" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
@@ -125,7 +131,7 @@ begin
 	
 	addressGenerator : tester generic map(addrSize, rangeBits, rand1_data, rand2_data, rand1_inst, rand2_inst, plusMinusData1, plusMinusData2,
 											plusMinusInst1, plusMinusInst2)
-    						  port map(clkPipeline, addressMode, cacheMode, startAddressData, startAddressInst, stallData, stallInst, isBranchData,
+    						  port map(clkPipeline, restartAddr, fullCache, addressMode, cacheMode, startAddressData, startAddressInst, stallData, stallInst, isBranchData,
 										branchUpDownData, isBranchInst, branchUpDownInst, branchDataOffset, branchInstOffset, cpuAddrD,
 										cpuAddrI);
 	toTestAddressData <= cpuAddrD;
