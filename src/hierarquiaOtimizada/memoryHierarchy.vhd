@@ -11,6 +11,9 @@ use ieee.numeric_bit.all;
 use types.all;
 
 entity memoryHierarchy is
+	generic(
+		accessTimeMemory: in time := 200 ns
+	);
     port(
 		clkPipeline:   in  bit;
 		clkI:          in  bit;
@@ -51,13 +54,11 @@ component cacheL1 is
 		-- I/O ao nivel L2
 		L2DataInI:  in  word_vector_type(1 downto 0);
 		L2ReadyI:   in  bit;
-		L2RWI:      out bit := '0';  --- '1' write e '0' read
       	L2EnableI:  out bit := '0';
 		L2AddrI:    out bit_vector(9 downto 0) := (others => '0');
 
 		L2DataInD:  in  word_vector_type(1 downto 0);
 		L2ReadyD:   in  bit;
-		L2RWD:      out bit := '0';  --- '1' write e '0' read
       	L2EnableD:  out bit := '0';
 		L2AddrD:    out bit_vector(9 downto 0) := (others => '0');
 		L2DataOutD: out word_vector_type(1 downto 0) := (others => word_vector_init);
@@ -80,11 +81,9 @@ component cacheL2 is
 		vbAddr      : in  bit_vector(9 downto 0);
 		dirtyData   : in  bit;
 		--Cache de dados
-		cdRW        : in  bit;
 		cdEnable    : in  bit;
 		cdAddr		: in  bit_vector(9 downto 0);
 		--Cache de Instrucoes
-		ciRW        : in  bit;
 		ciEnable    : in  bit;
 		ciAddr      : in  bit_vector(9 downto 0);
 		--Memoria Principal
@@ -129,12 +128,10 @@ end component;
 	-- sinais L1 - L2
 	signal iL2DataInI: word_vector_type(1 downto 0);
 	signal iL2ReadyI:  bit;
-	signal iL2RWI:     bit;
 	signal iL2EnableI: bit;
 	signal iL2AddrI:   bit_vector(9 downto 0);
 	signal iL2DataInD:  word_vector_type(1 downto 0);
 	signal iL2ReadyD:   bit;
-	signal iL2RWD:      bit;
 	signal iL2EnableD:  bit;
 	signal iL2AddrD:    bit_vector(9 downto 0);
 	signal iL2DataOutD: word_vector_type(1 downto 0);
@@ -172,13 +169,11 @@ begin
 		-- I/O ao nivel L2
 		L2DataInI           => iL2DataInI,
 		L2ReadyI            => iL2ReadyI,
-		L2RWI               => iL2RWI,
       	L2EnableI           => iL2EnableI,
 		L2AddrI             => iL2AddrI,
 
 		L2DataInD           => iL2DataInD,
 		L2ReadyD            => iL2ReadyD,
-		L2RWD               => iL2RWD,
       	L2EnableD           => iL2EnableD,
 		L2AddrD             => iL2AddrD,
 		L2DataOutD          => iL2DataOutD,
@@ -193,7 +188,6 @@ begin
 	cacheNivel2 : cacheL2 port map (
 		clk 				=> clkL2,
 		cinstL2Hit          => iL2ReadyI,
-		ciRW                => iL2RWI,
 		ciEnable            => iL2EnableI,
 		ciAddr              => iL2AddrI,
 		ciDataOut           => iL2DataInI,
@@ -201,7 +195,6 @@ begin
 		cdEnable            => iL2EnableD,
 		cdAddr		        => iL2AddrD,
 		cdDataOut           => iL2DataInD,
-		cdRW                => iL2RWD,
 		vbDataIn            => iL2BlockOutVB,
 		vbAddr              => iL2BlockOutAddressVB,
 		vbReady             => iL2ReadyVB,

@@ -147,7 +147,6 @@ begin
 		-- I/O ao nivel L2
 		L2DataIn           => L2DataInI,
 		L2Ready            => L2ReadyI,
-		L2RW               => L2RWI,
       	L2Enable           => L2EnableI,
 		L2Addr             => L2AddrI,
 
@@ -169,7 +168,6 @@ begin
 		dataOut            => dataOutD,
 
 		L2Ready            => L2ReadyD,
-		L2RW               => L2RWD,
         L2Enable           => L2EnableD,
 		L2BlockIn          => L2DataInD,
 		L2Addr             => L2AddrD,
