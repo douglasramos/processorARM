@@ -23,7 +23,7 @@ entity cacheL2Control is
 		-- I/O relacionado ao victim buffer
 		vbDataIn:      in word_vector_type(1 downto 0) := (others => word_vector_init);
 		vbAddr:        in  bit_vector(9 downto 0);
-		vbReady:       out bit;
+		vbReady:       out bit := '0';
 
 		-- I/O relacionado ao cache de dados
 		cdRW:          in  bit;
@@ -217,7 +217,9 @@ begin
 
 				--- estado VB Write
 				when VBWRITE =>
-				   state <= READY;
+					if (vbReady = '1') then
+						state <= READY;
+					end if;
 
 				--- estado VB Memory Write
 				when VBMWRITE =>

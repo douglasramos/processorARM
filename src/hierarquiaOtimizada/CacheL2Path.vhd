@@ -27,14 +27,15 @@ entity cacheL2Path is
 		delete:         in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
+		vbWrite         out bit := '0';
 
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(1 downto 0) := (others => word_vector_init);
-		vbAddr:          in  bit_vector(9 downto 0);
-		dirtyData:       in  bit;
+		vbAddr:         in  bit_vector(9 downto 0);
+		dirtyData:      in  bit;
 
 		-- I/O relacionados ao cache de dados
-		cdAddr:          in  bit_vector(9 downto 0);
+		cdAddr:         in  bit_vector(9 downto 0);
 		cdDataOut:      out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		-- I/O relacionados ao cache de instruções
@@ -121,7 +122,7 @@ begin
 	hitSignal <= '1' when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
 						  (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) 
 					 else '0';
-
+	
 	--  saidas
 
 	hit <= hitSignal;
@@ -135,6 +136,10 @@ begin
 	ciDataOut <= (cache(index).set(set_index).data) after accessTime when ciL2Hit = '1';
 
 	cdDataOut <= (cache(index).set(set_index).data) after accessTime when cdL2Hit = '1';
+
+	-- identifica um write do victim buffer
+	vbWrite <= '1' when (cache'event and writeOptions = "10") else '0';
+
 
 
 	-- atualizacao do cache de acordo com os sinais de controle
