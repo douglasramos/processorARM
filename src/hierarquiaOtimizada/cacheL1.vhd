@@ -28,13 +28,11 @@ entity cacheL1 is
 		-- I/O ao nivel L2
 		L2DataInI:  in  word_vector_type(1 downto 0);
 		L2ReadyI:   in  bit;
-		L2RWI:      out bit := '0';  --- '1' write e '0' read
       	L2EnableI:  out bit := '0';
 		L2AddrI:    out bit_vector(9 downto 0) := (others => '0');
 
 		L2DataInD:  in  word_vector_type(1 downto 0);
 		L2ReadyD:   in  bit;
-		L2RWD:      out bit := '0';  --- '1' write e '0' read
       	L2EnableD:  out bit := '0';
 		L2AddrD:    out bit_vector(9 downto 0) := (others => '0');
 		L2DataOutD: out word_vector_type(1 downto 0) := (others => word_vector_init);
@@ -61,7 +59,6 @@ component cacheI is
 		-- I/O ao nivel L2
 		L2DataIn: in  word_vector_type(1 downto 0);
 		L2Ready:  in  bit;
-		L2RW:     out bit := '0';  --- '1' write e '0' read
       	L2Enable: out bit := '0';
 		L2Addr:   out bit_vector(9 downto 0) := (others => '0');
 
@@ -87,7 +84,6 @@ component cacheD is
 		dataOut:       out word_type;
 
 		L2Ready:       in  bit;
-		L2RW:          out bit := '0';  --- '1' write e '0' read
         L2Enable:      out bit := '0';
 
 		L2BlockIn:    in  word_vector_type(1 downto 0);
