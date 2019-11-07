@@ -21,6 +21,7 @@ entity cacheIPath is
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit;
 		updateInfo:     in  bit;
+		updateLRU :		in  bit;
 		hit:            out bit := '0';
 		valid:          out bit := '0';
 
@@ -63,11 +64,13 @@ architecture cacheIPath_arch of cacheIPath is
 
 	type set_vector_type is record  -- Cache eh formado por um array de conjuntos
 		 set: set_type;
+		 LRU: natural;
     end record set_vector_type;
 
 	type cache_type is array (numberOfSets - 1 downto 0) of set_vector_type;
 
-	constant set_vector_init : set_vector_type := (set => (others => block_row_init));
+	constant set_vector_init : set_vector_type := (set => (others => block_row_init),
+												   LRU => 0);
 
 
 	--- definicao do cache
@@ -91,11 +94,11 @@ begin
 
 
 	-- Logica que define o index dentro do conjunto em caso de hit ou nao.
-	-- Note que caso o conjunto esteja cheio, troca-se sempre o primeiro bloco
+	-- Note que caso o conjunto esteja cheio, troca-se sempre pelo LRU
 	setIndex <= 0 when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
 	                    (hitSignal = '0' and cache(index).set(0).valid = '0') else
     			 1 when (cache(index).set(1).valid = '1' and cache(index).set(1).tag = tag) or
-			            (hitSignal = '0' and cache(index).set(1).valid = '0') else 0;
+			            (hitSignal = '0' and cache(index).set(1).valid = '0') else cache(index).LRU;
 
 	-- dois (2 blocos por conjunto) comparadores em paralelo para definir o hit
 	hitSignal <= '1' when (cache(index).set(0).valid = '1' and cache(index).set(0).tag = tag) or
@@ -112,12 +115,12 @@ begin
 
 	evictedBlockAddr(9 downto 5)  <= cache(index).set(setIndex).tag;
 	evictedBlockAddr(4 downto 3)  <= cpuAddr(4 downto 3);
-	evictedBlockAddr(2  downto 0) <= "000";
+	evictedBlockAddr(2 downto 0)  <= "000";
 
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions)
 	begin
-		if (updateInfo'event or writeOptions'event) then
+		if (updateInfo'event or writeOptions'event or updateLRU'event) then
 
 			-- atualiza informacoes do cache
 			if (updateInfo'event and updateInfo = '1') then
@@ -129,6 +132,14 @@ begin
 			-- writeOptions 1 -> usa o valor do mem (ocorreu miss)
 			if (writeOptions'event and writeOptions = '1') then
 				cache(index).set(setIndex).data <= dataIn;
+			end if;
+
+			if(updateLRU'event and updateLRU = '1') then
+				if (setIndex = 1) then
+					cache(index).LRU <= 0;
+				else 
+					cache(index).LRU <= 1;
+				end if;			
 			end if;
 
 		end if;

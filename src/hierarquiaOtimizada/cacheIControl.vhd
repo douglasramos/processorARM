@@ -26,6 +26,7 @@ entity cacheIControl is
 		valid:          in  bit;
 		writeOptions:   out bit := '0';
 		updateInfo:     out bit := '0';
+		updateLRU:      out bit := '0';
 
         -- I/O relacionados ao L2
 		L2Ready:      in  bit;
@@ -138,5 +139,8 @@ begin
 
 	-- vbEnable
 	vbEnable <= '1' when state = WRITEVB else '0';
+
+	-- update LRU
+	updateLRU <= '1' when state = HIT else '0';
 
 end architecture cacheIControl_arch;

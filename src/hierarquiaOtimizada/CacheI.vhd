@@ -53,6 +53,7 @@ component cacheIControl is
 		valid:          in  bit;
 		writeOptions:   out bit := '0';
 		updateInfo:     out bit := '0';
+		updateLRU:      out bit := '0';
 
         -- I/O relacionados ao L2
 		L2Ready:      in  bit;
@@ -75,6 +76,7 @@ component cacheIPath is
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit;
 		updateInfo:     in  bit;
+		updateLRU:      in  bit;
 		hit:            out bit := '0';
 		valid:          out bit := '0';
 
@@ -97,6 +99,7 @@ end component;
 	signal iWriteOptions : bit;
 	signal iUpdateInfo : bit;
 	signal iValid : bit;
+	signal iUpdateLRU : bit;
 
 begin
 
@@ -112,6 +115,7 @@ begin
 		writeOptions	=> iWriteOptions,
 		updateInfo		=> iUpdateInfo,
 	 	valid  			=> iValid,
+		updateLRU       => iUpdateLRU,
 
         -- I/O relacionados a Memoria princial
 		L2Ready		    => L2Ready,
@@ -128,6 +132,7 @@ begin
 		-- I/O relacionados ao controle
 		writeOptions	=> iWriteOptions,
 		updateInfo		=> iUpdateInfo,
+		updateLRU       => iUpdateLRU,
 		hit				=> iHit,
 		valid  			=> iValid,
 
