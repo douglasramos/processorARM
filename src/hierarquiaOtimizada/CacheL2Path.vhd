@@ -14,7 +14,7 @@ use types.all;
 
 entity cacheL2Path is
     generic (
-        accessTime: in time := 5 ns
+        accessTime: in time := 50 ns
     );
     port (
 
@@ -27,7 +27,7 @@ entity cacheL2Path is
 		delete:         in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
-		vbWrite         out bit := '0';
+		vbWrite:         out bit := '0';
 
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(1 downto 0) := (others => word_vector_init);

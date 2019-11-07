@@ -12,6 +12,9 @@ use ieee.numeric_bit.all;
 use types.all;
 
 entity cacheL2 is
+	generic (
+        accessTimeL2: in time := 50 ns
+    );
     port(
 		clk : in bit;
 		--------------------------------
@@ -63,7 +66,7 @@ component cacheL2Path is
 		delete:         in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
-		vbWrite         out bit := '0';
+		vbWrite:         out bit := '0';
 
 		-- I/O relacionados ao victim buffer
 		vbDataIn:       in word_vector_type(1 downto 0) := (others => word_vector_init);
@@ -113,7 +116,7 @@ component cacheL2Control is
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
-		vbWriteL2;     in  bit;
+		vbWriteL2:     in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		addrOptions:   out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
@@ -141,11 +144,11 @@ begin
 cdataL2Hit <= cdL2Hit;
 cinstL2Hit <= ciL2Hit;
 
-L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdEnable, cdL2Hit, ciEnable, ciL2Hit,
-													      dirtyBit, hitSignal, writeOptions, addrOptions, updateInfo, iDelete, memReady, memRW, memEnable);
+L2_UC : cacheL2Control generic map(accessTimeL2) port map(clk, vbDataIn, vbAddr, vbReady, cdEnable, cdL2Hit, ciEnable, ciL2Hit,
+													      dirtyBit, hitSignal, vbWrite, writeOptions, addrOptions, updateInfo, iDelete, memReady, memRW, memEnable);
 
 
-L2_FD : cacheL2Path port map(writeOptions, addrOptions, updateInfo, ciL2Hit, cdL2Hit, iDelete, hitSignal, dirtyBit, vbWrite, vbDataIn, vbAddr, dirtyData, cdAddr,
+L2_FD : cacheL2Path generic map(accessTimeL2) port map(writeOptions, addrOptions, updateInfo, ciL2Hit, cdL2Hit, iDelete, hitSignal, dirtyBit, vbWrite, vbDataIn, vbAddr, dirtyData, cdAddr,
 							  cdDataOut, ciAddr, ciDataOut, memBlockIn, memAddr, memBlockOut);
 
 

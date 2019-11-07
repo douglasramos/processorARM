@@ -39,7 +39,7 @@ entity cacheL2Control is
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
-		vbWriteL2;       in  bit;
+		vbWriteL2:       in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		addrOptions:   out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
