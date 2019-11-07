@@ -53,11 +53,7 @@ entity topLevel is
 		dataOutD:      out word_type;
 		--Relacionados ao "Tester"								   --aqui exibido para poder acompanhar na simulação!
 		toTestAddressData : out bit_vector(addrSize-1 downto 0);
-		toTestAddressInst : out bit_vector(addrSize-1 downto 0);
-		--Para testes no top level
-		Istate_d:      out bit_vector(2 downto 0);
-		Dstate_d :	   out bit_vector(3 downto 0);
-		Mstate_d:   out bit_vector(2 downto 0)
+		toTestAddressInst : out bit_vector(addrSize-1 downto 0)
     );
 end topLevel;
 
@@ -82,10 +78,7 @@ component memoryHierarchy is
 		cpuAddrD:      in  bit_vector(9 downto 0);
 		dataInD :      in  word_type;
 		dataOutD:      out word_type;
-		cpuWrite:      in  bit;
-		Istate_d:   out bit_vector(2 downto 0);
-		Dstate_d:   out bit_vector(3 downto 0);
-		Mstate_d:   out bit_vector(2 downto 0)
+		cpuWrite:      in  bit
     );
 end	component;
 
@@ -128,7 +121,7 @@ signal  stallInst    	  : bit;
 
 begin
 	
-	basicHierarchy : memoryHierarchy generic map(0 ns) port map(clkPipeline, clkI, clkI, cpuAddrI, stallInst, dataOutI, stallData, cpuAddrD, dataInD, dataOutD, cpuWrite,Istate_d, Dstate_d, Mstate_d);
+	basicHierarchy : memoryHierarchy generic map(200 ns) port map(clkPipeline, clkI, clkI, cpuAddrI, stallInst, dataOutI, stallData, cpuAddrD, dataInD, dataOutD, cpuWrite);
 	
 	addressGenerator : tester generic map(addrSize, rangeBits, rand1_data, rand2_data, rand1_inst, rand2_inst, plusMinusData1, plusMinusData2,
 											plusMinusInst1, plusMinusInst2)

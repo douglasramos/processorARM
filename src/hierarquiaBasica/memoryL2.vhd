@@ -53,7 +53,8 @@ component MemoryL2Control is
         clk:         in  bit;
 
         -- I/O relacionados a memoria
-        cRead:         in  bit;
+        cReadI:        in  bit;
+        cReadD:        in  bit;
 		cWrite:        in  bit;
         writeOptions:  out bit_vector(1 downto 0) := "00";
 
@@ -67,9 +68,8 @@ component MemoryL2Control is
 		cdEnable:      in  bit;
         cdMemRw:       in  bit; --- '1' write e '0' read
         -- I/O cacheD e datapath da memoria
-        cdMemReady:    out bit := '1';
-		--Para teste no top level
-		Mstate_d:   out bit_vector(2 downto 0)
+        cdMemReady:    out bit := '1'
+		
  
 
     );
@@ -86,7 +86,8 @@ component MemoryL2Path is
 		writeOptions: in  bit_vector(1 downto 0);
 		ciReady:      in  bit;
 		cdReady:      in  bit; 
-		cRead:        out bit := '0';
+		cReadI:       out bit := '0';
+		cReadD:       out bit := '0';
 		cWrite:       out bit := '0';
 
 		-- I/O relacionados ao cache de instrucoes
@@ -102,17 +103,17 @@ component MemoryL2Path is
 end component;
 
 signal writeOptions	    : bit_vector(1 downto 0);
-signal cRead, cwrite    : bit;
+signal cReadI, cReadD, cwrite    : bit;
 signal ciReady, cdReady : bit;
 
 
 begin
 
-	L2MemoFD : MemoryL2Path generic map(accessTimeMemory) port map(writeOptions, ciReady, cdReady, cRead, cWrite, ciAddr, ciDataOut,
+	L2MemoFD : MemoryL2Path generic map(accessTimeMemory) port map(writeOptions, ciReady, cdReady, cReadI, cReadD, cWrite, ciAddr, ciDataOut,
 																    cdAddr, cdDataIn, cdDataOut);
 	
-	L2MemoUC : MemoryL2Control generic map(accessTimeMemory) port map(clk, cRead, cWrite, writeOptions, ciEnable, ciMemRw, ciReady,
-        															   cdEnable, cdMemRw, cdReady, Mstate_d);
+	L2MemoUC : MemoryL2Control generic map(accessTimeMemory) port map(clk, cReadI, cReadD, cWrite, writeOptions, ciEnable, ciMemRw, ciReady,
+        															   cdEnable, cdMemRw, cdReady);
  		ciMemReady <= ciReady;
 		cdMemReady <= cdReady;																							  
 	
