@@ -15,7 +15,7 @@ entity topLevel is
 	generic ( 
 		accessTimeMemory : in time := 200 ns; 
 		addrSize         : natural := 10; --Basta colocar qualquer natural dessa linha para baixo!
-		rangeBits        : natural := 4;                           -- Quantidade de bits de range no gerador aleatório de saltos
+		rangeBits        : natural := 4;                           -- Quantidade de bits de range no gerador aleatï¿½rio de saltos
 		rand1_data       : natural := 1;
 		rand2_data       : natural := 2;
 		rand1_inst       : natural := 21;
@@ -28,16 +28,18 @@ entity topLevel is
     port(  
 		--INPUT--------------------------------------------
 		clkPipeline		  : in  bit;
-		clkI			  : in  bit;	--Só vou simular com clkI msm por enquanto...
-		clkD			  : in  bit;			 
+		clkI			  : in  bit;	--Sï¿½ vou simular com clkI msm por enquanto...
+		clkD			  : in  bit;
+		clkMemory         : in  bit;
+		clkL2             : in  bit;			 
 		start			  : in  bit;
 		fullCache		  : in  bit;
 		--Relacionados ao pipeline (Dados)	  
 		dataInD 		  : in  word_type;
 		cpuWrite		  : in  bit;
 		--Relacionados ao "Tester"
-		addressMode		  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
-		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = só cache de instruções; "10" = só cache de dados; "11" = os dois caches
+		addressMode		  : in  bit_vector(1 downto 0);      -- Mode "00" = instruï¿½ï¿½es consecutivas a partir de startAddress; "01" = instruï¿½ï¿½es com offset randomico; "10" = instruï¿½ï¿½es totalmente randomicas
+		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = sï¿½ cache de instruï¿½ï¿½es; "10" = sï¿½ cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
 		startAddressInst  : in  bit_vector(addrSize-1 downto 0);	
 		isBranchData	  : in  bit;
@@ -53,7 +55,7 @@ entity topLevel is
 		--Relacionados ao pipeline (Dados)
 		stallD:        out bit;
 		dataOutD:      out word_type;
-		--Relacionados ao "Tester"								   --aqui exibido para poder acompanhar na simulação!
+		--Relacionados ao "Tester"								   --aqui exibido para poder acompanhar na simulaï¿½ï¿½o!
 		toTestAddressData : out bit_vector(addrSize-1 downto 0);
 		toTestAddressInst : out bit_vector(addrSize-1 downto 0)
     );
@@ -69,6 +71,8 @@ component memoryHierarchy is
 		clkPipeline:   in  bit;
 		clkI:          in  bit;
 		clkD:          in  bit;
+		clkMemory:     in  bit;
+		clkL2:         in  bit;
 
 		-- I/O relacionados ao pipeline (instrucao)
 		cpuAddrI:      in  bit_vector(9 downto 0);
@@ -88,7 +92,7 @@ end	component;
 component tester is											 
 	generic (									
 		addrSize       : natural := 10; --Basta colocar qualquer natural dessa linha para baixo!
-		rangeBits      : natural := 4;                           -- Quantidade de bits de range no gerador aleatório de saltos
+		rangeBits      : natural := 4;                           -- Quantidade de bits de range no gerador aleatï¿½rio de saltos
 		rand1_data     : natural := 1;
 		rand2_data     : natural := 2;
 		rand1_inst     : natural := 21;
@@ -102,8 +106,8 @@ component tester is
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
 		start			  : in  bit;
 		fullCache		  : in  bit;
-		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
-		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = só cache de instruções; "10" = só cache de dados; "11" = os dois caches
+		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruï¿½ï¿½es consecutivas a partir de startAddress; "01" = instruï¿½ï¿½es com offset randomico; "10" = instruï¿½ï¿½es totalmente randomicas
+		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = sï¿½ cache de instruï¿½ï¿½es; "10" = sï¿½ cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
 		startAddressInst  : in  bit_vector(addrSize-1 downto 0);
 		stallData	 	  : in  bit;						
@@ -125,7 +129,7 @@ signal  stallInst    	  : bit;
 
 begin
 	
-	basicHierarchy : memoryHierarchy generic map(200 ns) port map(clkPipeline, clkI, clkI, cpuAddrI, stallInst, dataOutI, stallData, cpuAddrD, dataInD, dataOutD, cpuWrite);
+	basicHierarchy : memoryHierarchy generic map(200 ns) port map(clkPipeline, clkI, clkI, clkI, clkI, cpuAddrI, stallInst, dataOutI, stallData, cpuAddrD, dataInD, dataOutD, cpuWrite);
 	
 	addressGenerator : tester generic map(addrSize, rangeBits, rand1_data, rand2_data, rand1_inst, rand2_inst, plusMinusData1, plusMinusData2,
 											plusMinusInst1, plusMinusInst2)
