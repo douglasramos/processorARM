@@ -79,8 +79,6 @@ architecture MemoryL2Path_arch of MemoryL2Path is
 	--- Demais sinais internos
 	signal blockAddr: natural;
 	signal index: natural;
-	signal sCiDataOut: word_vector_type(1 downto 0);
-	signal sCdDataOut: word_vector_type(1 downto 0);
 	signal addr: bit_vector(9 downto 0);
 	
 begin 
@@ -98,21 +96,19 @@ begin
 	
 	-- leituras
 	-- Instru
-	sCiDataOut <= (memory(index).data) after accessTime when (writeOptions = "01");
-	ciDataOut <= sCiDataOut when (ciReady'event and ciReady = '1');
+	ciDataOut <= (memory(index).data) when (writeOptions = "01");
 
-	cReadI <= '1' when (sCiDataOut'event and writeOptions = "01") else '0';
+	cReadI <= '1' after accessTime when (writeOptions = "01") else '0';
 
 	-- Dados
-	sCdDataOut <= (memory(index).data) after accessTime when (writeOptions = "10");
-	cdDataOut <= sCdDataOut when (cdReady'event and cdReady = '1');
+	cdDataOut <= (memory(index).data) when (writeOptions = "10");
 
-	cReadD <= '1' when (sCdDataOut'event and writeOptions = "10") else '0';
+	cReadD <= '1' after accessTime when (writeOptions = "10") else '0';
 
 
 	-- escrita cache D
-	memory(index).data <= (cdDataIn) after accessTime when writeOptions = "11";
-	cWrite <= '1' when (memory'event and writeOptions = "11") else '0'; 
+	memory(index).data <= (cdDataIn) when writeOptions = "11";
+	cWrite <= '1' after accessTime when (writeOptions = "11") else '0'; 
 	
 	--- process para escrita no arquivo
 	

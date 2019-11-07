@@ -85,7 +85,7 @@ architecture cacheIPath_arch of cacheIPath is
 begin
 	-- obtem campos do cache a partir do endereco de entrada
 	memBlockAddr <= to_integer(unsigned(cpuAddr(9 downto 3)));
-	index        <= memBlockAddr mod numberOfBlocks;
+	index        <= memBlockAddr mod numberOfSets;
 	tag          <= cpuAddr(9 downto 5);
 	wordOffset   <= to_integer(unsigned(cpuAddr(2 downto 2)));
 

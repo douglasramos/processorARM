@@ -72,7 +72,6 @@ architecture MemoryL3Path_arch of MemoryL3Path is
 	--- Demais sinais internos
 	signal blockAddr: natural;
 	signal index: natural;
-	signal sdataOut: word_vector_type(1 downto 0);
 	
 begin 
 	
@@ -80,13 +79,12 @@ begin
 	index <= blockAddr mod numberOfBlocks;
 	
 	-- leitura
-	sdataOut <= (memory(index).data) after accessTime when RW = "01";
-	dataOut <= sdataOut;
-	cRead <= '1' when (sdataOut'event and RW /= "00") else '0';
+	dataOut <= (memory(index).data) when RW = "01";
+	cRead <= '1' after accessTime when (RW = "01") else '0';
 
 	-- escrita
-	memory(index).data <= (dataIn) after accessTime when RW = "10";
-	cWrite <= '1' when (memory'event and RW /= "00") else '0'; 
+	memory(index).data <= dataIn when RW = "10";
+	cWrite <= '1' after accessTime when (RW = "10") else '0'; 
 	
 	--- process para escrita no arquivo
 	
