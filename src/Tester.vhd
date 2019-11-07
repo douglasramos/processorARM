@@ -16,9 +16,9 @@ use types.all; -- 1 word, 32 bits
 
 entity tester is											 
 	generic (									
-		addrSize       : natural := 10; --Basta colocar qualquer natural dessa linha para baixo!
-		rangeBits      : natural := 4;                           -- Quantidade de bits de range no gerador aleatório de saltos
-		rand1_data     : natural := 1;
+		addrSize       : natural := 10; 
+		rangeBits      : natural := 4;    --Basta colocar qualquer natural dessa linha para baixo! Variáveis para geração de 
+		rand1_data     : natural := 1;						--números aleatórios!
 		rand2_data     : natural := 2;
 		rand1_inst     : natural := 21;
 		rand2_inst     : natural := 22;
@@ -29,8 +29,10 @@ entity tester is
 	);
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
+		clear			  : in  bit;       
+		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
-		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = só cache de instruções; "10" = só cache de dados; "11" = os dois caches
+		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "10" = só cache de instruções; "01" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
 		startAddressInst  : in  bit_vector(addrSize-1 downto 0);	
    		stallData	 	  : in  bit;						
@@ -58,8 +60,26 @@ begin
 	toTestAddressData <= addressDataToMemory;
 	toTestAddressInst <= addressInstToMemory;
 	
+process(stallData)
+		variable stallDataCounter : integer := 0;
+begin			 
+	if(stallData'event and stallData = '1') then
+		stallDataCounter := stallDataCounter + 1;		
+	end if;
+		
+end process;
+
+process(stallInst)
+		variable stallInstCounter : integer := 0;
+begin			 
+	if(stallInst'event and stallInst = '1') then	
+		stallInstCounter := stallInstCounter + 1;
+	end if;
+		
+end process;
+
 process(clk, stallData, stallInst)
-		variable start 			  	  : natural := 0;	 
+		--variable start 			  	  : natural := 0;	 
 		variable addressDataSum   	  : unsigned(addrSize-1 downto 0); 
 		variable addressInstSum   	  : unsigned(addrSize-1 downto 0); 
 		variable temp 			  	  : unsigned(addrSize-1 downto 0) := "0000000100"; 
@@ -74,31 +94,60 @@ process(clk, stallData, stallInst)
 		variable re1Data, re1Inst 	  : integer;
 		variable re2Data, re2Inst 	  : real;
 		variable pm1Data, pm1Inst 	  : integer;
-		variable pm2Data, pm2Inst 	  : real;
+		variable pm2Data, pm2Inst 	  : real;  
+		variable DsingleStallDuration : integer := 0;
+		variable IsingleStallDuration : integer := 0;
+		variable clkCounter			  : integer := 0;	 --tempo de execução
+		variable dataStallTimer		  : integer := 0;
+		variable instStallTimer		  : integer := 0;	   
+		variable dataStallEnable	  : integer := 0;
+		variable instStallMark	      : integer := 0;
+		variable dataStallMark 	      : integer := 0;
+		variable dataTotalStallTime   : integer := 0;
+		variable instTotalStallTime   : integer := 0;
+		variable instructionDataCount : integer := 0;
+		variable instructionInstCount : integer := 0;
+		
 		--variable countInst, countData : integer := 2;   --para dar dois clk's de delay após o stall, para coordenar bem com a máq. de estados!
 		
 		
-		begin
+		begin  
+			-----------------------------------------------------------------------------
+			--Logica para computo de estatisticas
 			if(clk'event and clk = '1') then
-				--if(countData = 0 or countData = 1) then
-				--	countData := countData + 1;
-				--elsif(falling_edge(stallData) and countData = 2) then 
-				--	countData := 0;
-				--end if;
-				
-				--if(countInst = 0 or countInst = 1) then
-				--	countInst := countInst + 1;
-				--elsif(falling_edge(stallInst) and countInst = 2) then 
-				--	countInst := 0;
-				--end if;
-				
-				if(start = 0) then
+				clkCounter := clkCounter + 1;
+					
+				if(stallData = '1') then
+					DsingleStallDuration := DsingleStallDuration + 1;
+					dataStallMark  := 1; 
+				end if;
+				 
+				if(stallData = '0' and dataStallMark = 1) then	
+					dataStallMark        := 0;
+					dataTotalStallTime   := dataTotalStallTime + DsingleStallDuration;
+					DsingleStallDuration := 0;
+				end if;
+				 
+				if(stallInst = '1') then
+					IsingleStallDuration := IsingleStallDuration + 1;
+					instStallMark        := 1; 
+				end if;
+													
+				if(stallInst = '0' and instStallMark = 1) then	
+					instStallMark        := 0;
+					instTotalStallTime   := instTotalStallTime + IsingleStallDuration;
+					IsingleStallDuration := 0;
+				end if;
+			-----------------------------------------------------------------------------
+			--Lógica de cuspir endereços
+				if(clear = '0') then
 					addressDataToMemory <= startAddressData;
 					addressInstToMemory <= startAddressInst;
-					start := 1;
+					--start := 1;
 				
 				else
 					if(stallData = '0') then -- and countData = 2) then
+						instructionDataCount := instructionDataCount + 1;
 						if(cacheMode(0) = '1') then															   --Geração de ends. para cache de dados ativa!
 							if(addressMode = "00" and (not isBranchData'event) and isBranchData = '0') then	   --Endereços consecutivos
 								addressDataSum := unsigned(addressDataToMemory) + unsigned(temp);	           --end. += 4
@@ -136,6 +185,7 @@ process(clk, stallData, stallInst)
 					
 					
 					if(stallInst = '0') then -- and countInst = 2) then
+						instructionInstCount := instructionInstCount +1;
 						if(cacheMode(1) = '1') then		--Geração de ends. para cache de inst ativa!
 							if(addressMode = "00" and (not isBranchInst'event) and isBranchInst = '0') then
 								addressInstSum := unsigned(addressInstToMemory) + unsigned(temp);	         --end. += 4
