@@ -21,11 +21,9 @@ entity cacheL2 is
 		vbAddr      : in  bit_vector(9 downto 0);
 		dirtyData   : in  bit;
 		--Cache de dados
-		cdRW        : in  bit;
 		cdEnable    : in  bit;
 		cdAddr		: in  bit_vector(9 downto 0);
 		--Cache de Instrucoes
-		ciRW        : in  bit;
 		ciEnable    : in  bit;
 		ciAddr      : in  bit_vector(9 downto 0);
 		--Memoria Principal
@@ -52,7 +50,7 @@ architecture archi of cacheL2 is
 
 component cacheL2Path is
     generic (
-        accessTime: in time := 5 ns
+        accessTime: in time := 50 ns
     );
     port (
 
@@ -143,13 +141,8 @@ begin
 cdataL2Hit <= cdL2Hit;
 cinstL2Hit <= ciL2Hit;
 
-<<<<<<< Updated upstream
 L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdEnable, cdL2Hit, ciEnable, ciL2Hit,
 													      dirtyBit, hitSignal, writeOptions, addrOptions, updateInfo, iDelete, memReady, memRW, memEnable);
-=======
-L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdRW, cdEnable, cdL2Hit, ciRW, ciEnable, ciL2Hit,
-													      dirtyBit, hitSignal, vbWrite, writeOptions, addrOptions, updateInfo, iDelete, memReady, memRW, memEnable);
->>>>>>> Stashed changes
 
 
 L2_FD : cacheL2Path port map(writeOptions, addrOptions, updateInfo, ciL2Hit, cdL2Hit, iDelete, hitSignal, dirtyBit, vbWrite, vbDataIn, vbAddr, dirtyData, cdAddr,
