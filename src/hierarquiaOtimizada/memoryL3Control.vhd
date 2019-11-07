@@ -40,10 +40,10 @@ architecture MemoryL3Control_arch of MemoryL3Control is
     signal state: states := INIT;
 
 begin
-	process (clk, enable, memRw)
+	process (clk)
     begin
 
-        if (rising_edge(clk) or enable'event or cRead'event or cWrite'event)  then
+        if (rising_edge(clk))  then
 
             case state is
                 --- estado inicial
