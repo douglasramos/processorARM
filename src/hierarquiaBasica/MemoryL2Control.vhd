@@ -21,7 +21,8 @@ entity MemoryL2Control is
         clk:         in  bit;
 
         -- I/O relacionados a memoria
-        cRead:         in  bit;
+        cReadI:        in  bit;
+        cReadD:        in  bit;
 		cWrite:        in  bit;
         writeOptions:  out bit_vector(1 downto 0) := "00";
 
@@ -76,7 +77,7 @@ begin
             
                 --- estado Read I
                 when IREAD =>
-                    if cRead = '1' then
+                    if cReadI = '1' then
                         -- Read de dado pendente
                         if (cdEnable = '1' and cdMemRw = '0') then
                             state <= IREADYDRPEND;
@@ -99,7 +100,7 @@ begin
 
                 --- estadao Read I
                 when DREAD =>
-                    if cRead = '1' then
+                    if cReadD = '1' then
                         -- Read de instrucao pendente
                         if (ciEnable = '1' and ciMemRw = '0') then
                             state <= DRREADYIPEND;

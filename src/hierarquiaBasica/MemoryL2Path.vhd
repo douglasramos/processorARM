@@ -24,7 +24,8 @@ entity MemoryL2Path is
 		writeOptions: in  bit_vector(1 downto 0);
 		ciReady:      in  bit;
 		cdReady:      in  bit; 
-		cRead:        out bit := '0';
+		cReadI:       out bit := '0';
+		cReadD:       out bit := '0';
 		cWrite:       out bit := '0';
 
 		-- I/O relacionados ao cache de instrucoes
@@ -99,16 +100,19 @@ begin
 	-- Instru
 	sCiDataOut <= (memory(index).data) after accessTime when (writeOptions = "01");
 	ciDataOut <= sCiDataOut when (ciReady'event and ciReady = '1');
+
+	cReadI <= '1' when (sCiDataOut'event and writeOptions = "01") else '0';
+
 	-- Dados
 	sCdDataOut <= (memory(index).data) after accessTime when (writeOptions = "10");
 	cdDataOut <= sCdDataOut when (cdReady'event and cdReady = '1');
 
-	-- vai pra um quando ocorre read de dados ou read de instruções e WriteOptions = 00
-	cRead <= '1' when ((sCiDataOut'event or sCdDataOut'event) and writeOptions /= "00") else '0';
+	cReadD <= '1' when (sCdDataOut'event and writeOptions = "10") else '0';
+
 
 	-- escrita cache D
 	memory(index).data <= (cdDataIn) after accessTime when writeOptions = "11";
-	cWrite <= '1' when (memory'event and writeOptions /= "00") else '0'; 
+	cWrite <= '1' when (memory'event and writeOptions = "11") else '0'; 
 	
 	--- process para escrita no arquivo
 	
