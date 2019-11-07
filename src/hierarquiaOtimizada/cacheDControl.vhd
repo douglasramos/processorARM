@@ -70,24 +70,16 @@ begin
 					   		state <= HIT;
 
 						else -- Miss
-							if dirtyBit = '1' then
-								state <= MWRITEBF;
+							if valid = '1' then
+								state <= WRITEVB;
 							else
 								state <= MISS;
 							end if;
                 		end if;
 
 					elsif cpuWrite = '1' and clkPipeline = '1' then -- Escrita no primeiro ciclo
-						if dirtyBit = '1' then
-							state <= WRITEVB;	-- precisa colocar dado atual na Memoria primeiro
-						elsif dirtyBit = '0' then
-						 	state <= WRITE; -- pode ja escrever no cache
-						end if;
+						state <= WRITEVB;	-- precisa colocar dado atual na Memoria primeiro
                 	end if;
-
-				--- estado Write
-				when WRITE =>
-				   state <= READY;
 
 
 				--- estado Compare Tag2
@@ -106,27 +98,20 @@ begin
 					state <= READY;
 
 				--- estado Miss
-                when MISS =>
-                	if valid = '1' then
-						state <= WRITEVB;
+				--- estado Miss
+				when MISS =>
+					if L2Ready = '1'  then
+						state <= LREADY;
 					else
-						if L2Ready = '1'  then
-							state <= LREADY;
-						else
-							state <= MISS;
-						end if;
-                    end if;
+						state <= MISS;
+					end if;
 
                 --- estado Write para o VB
 				when WRITEVB =>
 					if isVBFull = '1' then
 						state <= WRITEVB;
 					else
-						if L2Ready = '1'  then
-							state <= LREADY;
-						else
-							state <= MISS;
-						end if;
+						state <= MISS;
                     end if;
 
 				--- estado Memory Write Before Read

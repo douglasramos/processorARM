@@ -69,10 +69,12 @@ begin
 				when CTAG =>
 					if hitSignal = '1' then
 					   state <= HIT;
-
-					else -- Miss
-						state <= MISS;
-
+					else -- Miss or WRITEVB
+						if valid = '1' then
+							state <= WRITEVB;
+						else
+							state <= MISS;
+						end if;
                     end if;
 
 				--- estado Compare Tag2
@@ -83,7 +85,6 @@ begin
 
 					else -- Miss
 						state <= MISS;
-
                     end if;
 
 				--- estado Hit
@@ -92,14 +93,10 @@ begin
 
 				--- estado Miss
 				when MISS =>
-					if valid = '1' then
-						state <= WRITEVB;
+					if L2Ready = '1'  then
+						state <= L2;
 					else
-						if L2Ready = '1'  then
-							state <= L2;
-						else
-							state <= MISS;
-						end if;
+						state <= MISS;
 					end if;
 
                 --- estado Write para o VB
@@ -107,11 +104,7 @@ begin
 					if isVBFull = '1' then
 						state <= WRITEVB;
 					else
-						if L2Ready = '1'  then
-							state <= L2;
-						else
-							state <= MISS;
-						end if;
+						state <= MISS;
                     end if;
 
 				--- estado L2 Ready
