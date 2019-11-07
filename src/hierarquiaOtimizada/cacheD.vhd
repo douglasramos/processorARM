@@ -59,7 +59,8 @@ component cacheDControl is
 		hitSignal:     in  bit;
 		valid:         in  bit;
         writeOptions:  out bit_vector(1 downto 0) := "00";
-		updateInfo:    out bit := '0';
+		updateInfo:    out bit := '0'; 
+		updateLRU:     out bit := '0';
 
         -- I/O relacionados ao L2
 		L2Ready:      in  bit;
@@ -81,9 +82,11 @@ component cacheDPath is
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit_vector(1 downto 0);
 		updateInfo:     in  bit;
+		updateLRU:      in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
 		valid:          out bit := '0';
+		
 
 		-- I/O relacionados ao MEM stage
         cpuAddr:        in  bit_vector(9 downto 0);
@@ -106,7 +109,8 @@ end component;
     signal iWriteOptions : bit_vector(1 downto 0);
     signal iUpdateInfo : bit;
     signal iMemWrite: bit;
-    signal iValid : bit;
+	signal iValid : bit;
+	signal iUpdateLRU : bit;
 
 
 begin
@@ -125,7 +129,8 @@ begin
 		dirtyBit		=> iDirtyBit,
 		hitSignal		=> iHit,
 		writeOptions	=> iWriteOptions,
-        updateInfo		=> iUpdateInfo,
+		updateInfo		=> iUpdateInfo,
+		updateLRU       => iUpdateLRU,
 		valid  			=> iValid,
 
         -- I/O relacionados a Memoria princial
@@ -141,9 +146,10 @@ begin
 		-- I/O relacionados ao controle
 		writeOptions	 => iWriteOptions,
 		updateInfo		 => iUpdateInfo,
+		updateLRU        => iUpdateLRU,
 		hit				 => iHit,
         dirtyBit		 => iDirtyBit,
-		valid  			=> iValid,
+		valid  			 => iValid,
 
 		-- I/O relacionados ao MEM stage
       	cpuAddr			 => cpuAddr,

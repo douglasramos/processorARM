@@ -26,9 +26,10 @@ entity cacheDControl is
 		-- I/O relacionados ao cache
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
-		valid:          in  bit;
+		valid:         in  bit;
         writeOptions:  out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
+		updateLRU:     out bit := '1';
 
         -- I/O relacionados ao L2
 		L2Ready:      in  bit;
@@ -154,5 +155,8 @@ begin
 
     -- vbEnable
 	vbEnable <= '1' when state = WRITEVB else '0';
+
+	-- update LRU
+	updateLRU <= '1' when state = HIT else '0';
 
 end architecture cacheDControl_arch;

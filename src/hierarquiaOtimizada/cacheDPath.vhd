@@ -19,6 +19,7 @@ entity cacheDPath is
 		-- I/O relacionados ao controle
 		writeOptions:   in  bit_vector(1 downto 0);
 		updateInfo:     in  bit;
+		updateLRU:      in  bit;
 		hit:            out bit := '0';
 		dirtyBit:       out bit := '0';
 		valid:          out bit := '0';
@@ -65,12 +66,14 @@ architecture cacheDPath_arch of cacheDPath is
     type set_type is array (blocksPerSet - 1 downto 0) of block_row_type;
 
 	type set_vector_type is record  -- Cache eh formado por um array de conjuntos
-		 set: set_type;
+		set: set_type;
+		LRU: natural;
     end record set_vector_type;
 
 	type cache_type is array (numberOfSets - 1 downto 0) of set_vector_type;
 
-	constant set_vector_init : set_vector_type := (set => (others => block_row_init));
+	constant set_vector_init : set_vector_type := (set => (others => block_row_init),
+												   LRU => 0);
 
 	--- definicao do cache
     signal cache: cache_type := (others => set_vector_init);
@@ -118,7 +121,7 @@ begin
 	-- atualizacao do cache de acordo com os sinais de controle
 	process(updateInfo, writeOptions)
 	begin
-		if (updateInfo'event or writeOptions'event) then
+		if (updateInfo'event or writeOptions'event or updateLRU'event) then
 
 			-- atualiza info (tag e valid bit)
 			if (updateInfo'event and updateInfo = '1') then
@@ -136,6 +139,14 @@ begin
 			elsif (writeOptions = "10") then
 				cache(index).set(setIndex).data(wordOffset) <= dataIn after accessTime;
 				cache(index).set(setIndex).dirty <= '1';
+			end if;
+
+			if(updateLRU'event and updateLRU = '1') then
+				if (setIndex = 1) then
+					cache(index).LRU <= 0;
+				else
+					cache(index).LRU <= 1;
+				end if;
 			end if;
 
 		end if;
