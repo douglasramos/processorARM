@@ -41,12 +41,12 @@ end entity cacheIPath;
 
 architecture cacheIPath_arch of cacheIPath is
 
-	constant cacheSize:        positive := 32; -- 32Bytes (8 palavras)
+	constant cacheSize:        positive := 64; -- 64Bytes (16 palavras)
 	constant palavrasPorBloco: positive := 2;
 	constant blocoSize:        positive := palavrasPorBloco * 4; --- 2 * 4 = 8Bytes
-	constant numberOfBlocks:   positive := cacheSize / blocoSize; --- 4
+	constant numberOfBlocks:   positive := cacheSize / blocoSize; --- 8
 	constant blocksPerSet:     positive := 2; -- Associativo por conjunto de 2 blocos
-	constant numberOfSets:     positive := numberOfBlocks / blocksPerSet; --  2 conjuntos
+	constant numberOfSets:     positive := numberOfBlocks / blocksPerSet; --  4 conjuntos
 
 	--- Cada bloco possui valid + tag + data
 	type block_row_type is record
