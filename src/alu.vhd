@@ -7,7 +7,7 @@
 --Modificado por Grupo A
 --Adequar-se a instrução CBNZ
 --------------------------------------------------------------------------------
-
+				  ---------------------------------------------
 library ieee;
 use ieee.numeric_bit.all;
 
