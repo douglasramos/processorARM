@@ -10,8 +10,8 @@ use ieee.numeric_bit.all;
 use std.textio.all;
 
 -- importa os types do projeto
-library arm;
-use arm.types.all;
+
+use types.all;
 
 
 entity MemoryL2Path is
@@ -78,7 +78,8 @@ architecture MemoryL2Path_arch of MemoryL2Path is
 	--- Demais sinais internos
 	signal blockAddr: natural;
 	signal index: natural;
-	signal sdataOut: word_vector_type(1 downto 0);
+	signal sCiDataOut: word_vector_type(1 downto 0);
+	signal sCdDataOut: word_vector_type(1 downto 0);
 	signal addr: bit_vector(9 downto 0);
 	
 begin 
@@ -94,15 +95,16 @@ begin
 	blockAddr <= to_integer(unsigned(addr(9 downto 3)));
 	index <= blockAddr mod numberOfBlocks;
 	
-	-- leitura
-	sdataOut <= (memory(index).data) after accessTime when (writeOptions = "01" or writeOptions = "10");
-	cRead <= '1' when (sdataOut'event and writeOptions /= "00") else '0';
-	
-	-- cache D => atualiza quando a mudança é de zero pra 1
-	cdDataOut <= sdataOut when (cdReady'event and cdReady = '1');
+	-- leituras
+	-- Instru
+	sCiDataOut <= (memory(index).data) after accessTime when (writeOptions = "01");
+	ciDataOut <= sCiDataOut when (ciReady'event and ciReady = '1');
+	-- Dados
+	sCdDataOut <= (memory(index).data) after accessTime when (writeOptions = "10");
+	cdDataOut <= sCdDataOut when (cdReady'event and cdReady = '1');
 
-	-- cache I => atualiza quando a mudança é de zero pra 1
-	ciDataOut <= sdataOut when (ciReady'event and ciReady = '1');
+	-- vai pra um quando ocorre read de dados ou read de instruções e WriteOptions = 00
+	cRead <= '1' when ((sCiDataOut'event or sCdDataOut'event) and writeOptions /= "00") else '0';
 
 	-- escrita cache D
 	memory(index).data <= (cdDataIn) after accessTime when writeOptions = "11";
