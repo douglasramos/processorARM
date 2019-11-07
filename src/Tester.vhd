@@ -29,7 +29,7 @@ entity tester is
 	);
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
-		clear			  : in  bit;       
+		start			  : in  bit;       
 		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "10" = só cache de instruções; "01" = só cache de dados; "11" = os dois caches
@@ -140,7 +140,7 @@ process(clk, stallData, stallInst)
 				end if;
 			-----------------------------------------------------------------------------
 			--Lógica de cuspir endereços
-				if(clear = '0') then
+				if(start = '0') then
 					addressDataToMemory <= startAddressData;
 					addressInstToMemory <= startAddressInst;
 					--start := 1;
