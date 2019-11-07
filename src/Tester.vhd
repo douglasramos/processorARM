@@ -139,7 +139,7 @@ process(clk, stallData, stallInst)
 				end if;
 			-----------------------------------------------------------------------------
 			--Lógica de cuspir endereços
-				if(start = 0 or restartAddr = '0') then
+				if(start = 0 or restartAddr = '1') then
 					addressDataToMemory <= startAddressData;
 					addressInstToMemory <= startAddressInst;
 					start := 1;
