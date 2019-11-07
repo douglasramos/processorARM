@@ -101,13 +101,11 @@ component cacheL2Control is
 		vbReady:       out bit;
 
 		-- I/O relacionado ao cache de dados
-		cdRW:          in  bit;
 		cdEnable:      in  bit;
 		-- I/O cacheD e datapath do L2
 		cdL2Hit:       out bit := '0';
 
 		-- I/O relacionado ao cache de instruções
-		ciRW:          in  bit;
 		ciEnable:      in  bit;
 
 		-- I/O cachel e datapath do L2
@@ -142,7 +140,7 @@ begin
 cdataL2Hit <= cdL2Hit;
 cinstL2Hit <= ciL2Hit;
 
-L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdRW, cdEnable, cdL2Hit, ciRW, ciEnable, ciL2Hit,
+L2_UC : cacheL2Control port map(clk, vbDataIn, vbAddr, vbReady, cdEnable, cdL2Hit, ciEnable, ciL2Hit,
 													      dirtyBit, hitSignal, writeOptions, addrOptions, updateInfo, iDelete, memReady, memRW, memEnable);
 
 

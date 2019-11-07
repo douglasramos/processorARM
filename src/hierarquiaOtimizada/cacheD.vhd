@@ -22,7 +22,6 @@ entity cacheD is
 		dataOut:       out word_type;
 
 		L2Ready:       in  bit;
-		L2RW:          out bit := '0';  --- '1' write e '0' read
         L2Enable:      out bit := '0';
 
 		L2BlockIn:    in  word_vector_type(1 downto 0);
@@ -64,7 +63,6 @@ component cacheDControl is
 
         -- I/O relacionados ao L2
 		L2Ready:      in  bit;
-		L2RW:         out bit := '0';  --- '1' write e '0' read
         L2Enable:     out bit := '0';
 
         -- I/O relacionados ao victim buffer
@@ -114,7 +112,7 @@ end component;
 begin
 
 	dirtyBit <= iDirtyBit;
-	
+
 	control : cacheDControl port map(
 		-- I/O relacionados ao stage MEM
 		clk			   => clk,
@@ -132,7 +130,6 @@ begin
 
         -- I/O relacionados a Memoria princial
 		L2Ready		    => L2Ready,
-		L2RW			=> L2RW,
         L2Enable		=> L2Enable,
 
         -- I/O relacionados ao victim buffer

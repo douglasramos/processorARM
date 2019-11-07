@@ -31,7 +31,6 @@ entity cacheL1 is
 		L2RWI:      out bit := '0';  --- '1' write e '0' read
       	L2EnableI:  out bit := '0';
 		L2AddrI:    out bit_vector(9 downto 0) := (others => '0');
-		L2DataOutI: out word_vector_type(1 downto 0) := (others => word_vector_init);
 
 		L2DataInD:  in  word_vector_type(1 downto 0);
 		L2ReadyD:   in  bit;

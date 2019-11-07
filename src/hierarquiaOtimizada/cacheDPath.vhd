@@ -106,7 +106,6 @@ begin
 	valid <= cache(index).set(setIndex).valid;
 	L2Addr <= cpuAddr;
 	dirtyBit <= cache(index).set(setIndex).dirty;
-    L2BlockOut <= cache(index).set(setIndex).data;
 
 	-- monta address e data do bloco a ser mandado para o VB
 	evictedBlockData <= cache(index).set(setIndex).data;   -- posicao index do addr que entra no index do bloco que sai tambem

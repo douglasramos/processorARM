@@ -32,7 +32,6 @@ entity cacheDControl is
 
         -- I/O relacionados ao L2
 		L2Ready:      in  bit;
-		L2RW:         out bit := '0';  --- '1' write e '0' read
         L2Enable:     out bit := '0';
 
         -- I/O relacionados ao victim buffer
@@ -45,7 +44,7 @@ end entity cacheDControl;
 architecture cacheDControl_arch of cacheDControl is
 
 	-- Definicao de estados
-    type states is (INIT, READY, CTAG, WRITE, L2WRITE, CTAG2, HIT, MISS, LREADY, WRITEVB, MWRITEBF);
+    type states is (INIT, READY, CTAG, WRITE, CTAG2, HIT, MISS, LREADY, WRITEVB, MWRITEBF);
     signal state: states := INIT;
 
 begin
@@ -80,7 +79,7 @@ begin
 
 					elsif cpuWrite = '1' and clkPipeline = '1' then -- Escrita no primeiro ciclo
 						if dirtyBit = '1' then
-							state <= L2WRITE;	-- precisa colocar dado atual na Memoria primeiro
+							state <= WRITEVB;	-- precisa colocar dado atual na Memoria primeiro
 						elsif dirtyBit = '0' then
 						 	state <= WRITE; -- pode ja escrever no cache
 						end if;
@@ -89,14 +88,6 @@ begin
 				--- estado Write
 				when WRITE =>
 				   state <= READY;
-
-				--- estado Memory Write
-				when L2WRITE =>
-					if L2Ready = '1' then
-						state <= READY;
-					elsif L2Ready = '0' then
-						state <= L2WRITE;
-					end if;
 
 
 				--- estado Compare Tag2
@@ -156,8 +147,8 @@ begin
 	-- stall -- trava pipeline
 	stall <= '1' when state = MISS   or
 					  state = LREADY or
-					  state = CTAG2  or
-					  state = L2WRITE else '0';
+					  state = CTAG2
+					  else '0';
 
 	-- writeOptions
 	writeOptions <=  "01" when state = LREADY  else
@@ -169,7 +160,6 @@ begin
 
     -- memory
 	L2Enable <= '1' when state = MISS   else '0';
-	L2RW     <= '1' when state = L2WRITE else '0';
 
     -- vbEnable
 	vbEnable <= '1' when state = WRITEVB else '0';
