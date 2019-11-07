@@ -102,11 +102,17 @@ begin
 						end if;
 					end if;
 
-				--- estado Write para o VB
+                --- estado Write para o VB
 				when WRITEVB =>
-					if isVBFull = '0' then
+					if isVBFull = '1' then
 						state <= WRITEVB;
-					end if;
+					else
+						if L2Ready = '1'  then
+							state <= L2;
+						else
+							state <= MISS;
+						end if;
+                    end if;
 
 				--- estado L2 Ready
 				when L2 =>

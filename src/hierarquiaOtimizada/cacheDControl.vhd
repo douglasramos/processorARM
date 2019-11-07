@@ -119,7 +119,7 @@ begin
 
                 --- estado Write para o VB
 				when WRITEVB =>
-					if isVBFull = '0' then
+					if isVBFull = '1' then
 						state <= WRITEVB;
 					else
 						if L2Ready = '1'  then
