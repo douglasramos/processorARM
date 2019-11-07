@@ -37,7 +37,7 @@ architecture MemoryL3Control_arch of MemoryL3Control is
 
 	-- Definicao de estados
     type states is (INIT, READY, WRITE, READ);
-    signal state: states := INIT;
+    signal state_M: states := INIT;
 
 begin
 	process (clk)
@@ -45,34 +45,34 @@ begin
 
         if (rising_edge(clk))  then
 
-            case state is
+            case state_M is
                 --- estado inicial
                 when INIT =>
-                    state <= READY;
+                    state_M <= READY;
 
                 --- estado Ready
                 when READY =>
                     if (enable = '1' and memRw = '0') then
-                        state <= READ;
+                        state_M <= READ;
                     elsif (enable = '1' and memRw = '1') then
-                        state <= WRITE;
+                        state_M <= WRITE;
                     end if;
             
                 --- estadao Read
                 when READ =>
                     if cRead = '1' then
-                        state <= READY;
+                        state_M <= READY;
                     end if;
 
                 --- estado Write
                 when WRITE =>
                     if cWrite = '1' then
-                        state <= READY;
+                        state_M <= READY;
                     end if;
 
 
                 when others =>
-                    state <= INIT;
+                    state_M <= INIT;
             end case;
 
         end if;
@@ -84,11 +84,11 @@ begin
     -- 01 => Read
     -- 10 => Write
     -- 00 => Idle
-    RW <= "01" when (state = READ) else
-          "10" when (state = WRITE) else
+    RW <= "01" when (state_M = READ) else
+          "10" when (state_M = WRITE) else
           "00";
     
-    memReady <= '1' when (state = READY) else '0';
+    memReady <= '1' when (state_M = READY) else '0';
 
 
 end architecture MemoryL3Control_arch;
