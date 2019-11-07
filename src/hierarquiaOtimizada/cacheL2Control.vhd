@@ -39,6 +39,7 @@ entity cacheL2Control is
 		-- I/O relacionados ao cache L2
 		dirtyBit:      in  bit;
 		hitSignal:     in  bit;
+		vbWriteL2;       in  bit;
 		writeOptions:  out bit_vector(1 downto 0) := "00";
 		addrOptions:   out bit_vector(1 downto 0) := "00";
 		updateInfo:    out bit := '0';
@@ -215,7 +216,7 @@ begin
 
 				--- estado VB Write
 				when VBWRITE =>
-					if (vbReady = '1') then
+					if (vbWriteL2 = '1') then
 						state <= READY;
 					end if;
 
@@ -234,6 +235,9 @@ begin
 	end process;
 
 	--- saidas ---
+
+	-- vbReady
+	vbReady <= vbWriteL2;
 
 	-- cdL2Hit => informa pra cache L1 que ocorreu um Hit de dados
 	cdL2Hit <= '1' when state = DHIT else '0';
