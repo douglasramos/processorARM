@@ -121,7 +121,13 @@ begin
 				when WRITEVB =>
 					if isVBFull = '0' then
 						state <= WRITEVB;
-					end if;
+					else
+						if L2Ready = '1'  then
+							state <= LREADY;
+						else
+							state <= MISS;
+						end if;
+                    end if;
 
 				--- estado Memory Write Before Read
 				--- caso em que o memory read sobrescreveria um bloco com dirtybit
