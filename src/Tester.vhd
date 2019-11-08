@@ -1,6 +1,6 @@
 -- PCS3422 - Organização e Arquitetura de Computadores II
 -- ARM		 
---
+--							       
 -- Description:
 --     Testador para a hierarquia de memória. Propõe endereços para fetch e responde a stalls
 								     						  --Modos de funcionamento: saltos uniformes (4 em 4 endereços)
@@ -16,24 +16,32 @@ use types.all; -- 1 word, 32 bits
 
 entity tester is											 
 	generic (									
-		addrSize       : natural := 10; 
-		rangeBits      : natural := 4;    --Basta colocar qualquer natural dessa linha para baixo! Variáveis para geração de 
-		rand1_data     : natural := 1;						--números aleatórios!
-		rand2_data     : natural := 2;
-		rand1_inst     : natural := 21;
-		rand2_inst     : natural := 22;
-		plusMinusData1 : natural := 50;
-		plusMinusData2 : natural := 51;
-		plusMinusInst1 : natural := 100;
-		plusMinusInst2 : natural := 100
+		addrSize        : natural := 10; 
+		dataBlockAmount : natural := 100000;
+		instBlockAmount : natural := 100000;
+		rangeBits       : natural := 4;    --Basta colocar qualquer natural dessa linha para baixo! Variáveis para geração de 
+		rand1_data      : natural := 1;						--números aleatórios!
+		rand2_data      : natural := 2;
+		rand1_inst      : natural := 21;
+		rand2_inst      : natural := 22;
+		plusMinusData1  : natural := 50;
+		plusMinusData2  : natural := 51;
+		plusMinusInst1  : natural := 100;
+		plusMinusInst2  : natural := 100
 	);
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
 		restartAddr		  : in  bit;       
+		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "10" = só cache de instruções; "01" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
-		startAddressInst  : in  bit_vector(addrSize-1 downto 0);	
+		startAddressInst  : in  bit_vector(addrSize-1 downto 0);			  
+		endAddressData	  : in  bit_vector(addrSize-1 downto 0);	
+		endAddressInst	  : in  bit_vector(addrSize-1 downto 0);
+		setAddressEnable  : in  bit;
+		setAddressData    : in  bit_vector(addrSize-1 downto 0);
+		setAddressInst    : in  bit_vector(addrSize-1 downto 0);
    		stallData	 	  : in  bit;						
 		stallInst    	  : in  bit; 
 		isBranchData	  : in  bit;
@@ -139,12 +147,21 @@ process(clk, stallData, stallInst)
 				end if;
 			-----------------------------------------------------------------------------
 			--Lógica de cuspir endereços
-				if(start = 0 or restartAddr = '1') then
+				if(start = 0) then
 					addressDataToMemory <= startAddressData;
 					addressInstToMemory <= startAddressInst;
-					start := 1;
-				
-				else
+					start := 1;								
+					
+				elsif(restartAddr = '1') then				
+					addressDataToMemory <= startAddressData;
+					addressInstToMemory <= startAddressInst;
+					
+				elsif(fullCache = '1')	then
+					addressDataSum := unsigned(addressDataToMemory) + unsigned(temp);
+				elsif(setAddressEnable = '1') then
+					addressDataSum := unsigned(setAddressData);
+					addressInstSum := unsigned(setAddressInst);
+				elsif(unsigned(endAddressData) /= addressDataSum) then
 					if(stallData = '0') then
 						instructionDataCount := instructionDataCount + 1;
 						if(cacheMode(0) = '1') then															   --Geração de ends. para cache de dados ativa!
@@ -183,7 +200,7 @@ process(clk, stallData, stallInst)
 					addressDataToMemory <= bit_vector(addressDataSum);
 					
 					
-					if(stallInst = '0') then
+					if(stallInst = '0' and unsigned(endAddressInst) /= addressInstSum) then
 						instructionInstCount := instructionInstCount +1;
 						if(cacheMode(1) = '1') then		--Geração de ends. para cache de inst ativa!
 							if(addressMode = "00" and (not isBranchInst'event) and isBranchInst = '0') then

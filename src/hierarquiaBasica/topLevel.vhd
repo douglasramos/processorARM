@@ -42,6 +42,11 @@ entity topLevel is
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = só cache de instruções; "10" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
 		startAddressInst  : in  bit_vector(addrSize-1 downto 0);	
+		endAddressData	  : in  bit_vector(addrSize-1 downto 0);	
+		endAddressInst	  : in  bit_vector(addrSize-1 downto 0);
+		setAddressEnable  : in  bit;
+		setAddressData    : in  bit_vector(addrSize-1 downto 0);
+		setAddressInst    : in  bit_vector(addrSize-1 downto 0);
 		isBranchData	  : in  bit;
 		branchUpDownData  : in  bit;
 		isBranchInst	  : in  bit;
@@ -107,7 +112,12 @@ component tester is
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = só cache de instruções; "10" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
-		startAddressInst  : in  bit_vector(addrSize-1 downto 0);
+		startAddressInst  : in  bit_vector(addrSize-1 downto 0);	
+		endAddressData	  : in  bit_vector(addrSize-1 downto 0);	
+		endAddressInst	  : in  bit_vector(addrSize-1 downto 0);	  
+		setAddressEnable  : in  bit;
+		setAddressData    : in  bit_vector(addrSize-1 downto 0);
+		setAddressInst    : in  bit_vector(addrSize-1 downto 0);
 		stallData	 	  : in  bit;						
 		stallInst    	  : in  bit; 
 		isBranchData	  : in  bit;
@@ -131,8 +141,8 @@ begin
 	
 	addressGenerator : tester generic map(addrSize, rangeBits, rand1_data, rand2_data, rand1_inst, rand2_inst, plusMinusData1, plusMinusData2,
 											plusMinusInst1, plusMinusInst2)
-    						  port map(clkPipeline, restartAddr, fullCache, addressMode, cacheMode, startAddressData, startAddressInst, stallData, stallInst, isBranchData,
-										branchUpDownData, isBranchInst, branchUpDownInst, branchDataOffset, branchInstOffset, cpuAddrD,
+    						  port map(clkPipeline, restartAddr, fullCache, addressMode, cacheMode, startAddressData, startAddressInst, endAddressData, endAddressInst, 
+										setAddressEnable, setAddressData, setAddressInst, stallData, stallInst, isBranchData, branchUpDownData, isBranchInst, branchUpDownInst, branchDataOffset, branchInstOffset, cpuAddrD,
 										cpuAddrI);
 	toTestAddressData <= cpuAddrD;
 	toTestAddressInst <= cpuAddrI;
