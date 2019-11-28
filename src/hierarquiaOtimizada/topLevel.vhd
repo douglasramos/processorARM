@@ -33,7 +33,6 @@ entity topLevel is
 		clkMemory         : in  bit;
 		clkL2             : in  bit;			 
 		restartAddr		  : in  bit;
-		fullCache		  : in  bit;
 		--Relacionados ao pipeline (Dados)	  
 		dataInD 		  : in  word_type;
 		cpuWrite		  : in  bit;
@@ -110,7 +109,6 @@ component tester is
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
 		restartAddr		  : in  bit;  
-		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instru��es consecutivas a partir de startAddress; "01" = instru��es com offset randomico; "10" = instru��es totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "01" = s� cache de instru��es; "10" = s� cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
@@ -144,7 +142,7 @@ begin
 	  
 	addressGenerator : tester generic map(addrSize, rangeBits, rand1_data, rand2_data, rand1_inst, rand2_inst, plusMinusData1, plusMinusData2,
 											plusMinusInst1, plusMinusInst2)
-    						  port map(clkPipeline, restartAddr,fullCache, addressMode, cacheMode, startAddressData, startAddressInst, endAddressData, endAddressInst, 
+    						  port map(clkPipeline, restartAddr, addressMode, cacheMode, startAddressData, startAddressInst, endAddressData, endAddressInst, 
 							  			setAddressEnable, setAddressData, setAddressInst, stallData, stallInst, isBranchData, branchUpDownData, isBranchInst, branchUpDownInst, branchDataOffset, branchInstOffset, cpuAddrD,
 										cpuAddrI);
 	toTestAddressData <= cpuAddrD;
