@@ -32,7 +32,6 @@ entity tester is
     port (	
 		clk          	  : in  bit;						 -- Mesmo ciclo de clock que os caches L1
 		restartAddr		  : in  bit;       
-		fullCache		  : in  bit;
 		addressMode  	  : in  bit_vector(1 downto 0);      -- Mode "00" = instruções consecutivas a partir de startAddress; "01" = instruções com offset randomico; "10" = instruções totalmente randomicas
 		cacheMode	 	  : in  bit_vector(1 downto 0);      -- Mode "10" = só cache de instruções; "01" = só cache de dados; "11" = os dois caches
 		startAddressData  : in  bit_vector(addrSize-1 downto 0);	
@@ -156,8 +155,6 @@ process(clk, stallData, stallInst)
 					addressDataToMemory <= startAddressData;
 					addressInstToMemory <= startAddressInst;
 					
-				elsif(fullCache = '1')	then
-					addressDataSum := unsigned(addressDataToMemory) + unsigned(temp);
 				elsif(setAddressEnable = '1') then
 					addressDataSum := unsigned(setAddressData);
 					addressInstSum := unsigned(setAddressInst);
